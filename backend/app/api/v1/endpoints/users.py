@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 from app.schemas.common import PaginatedResponse
-from app.security import get_current_user_id, require_any_user
+from app.core.security import get_current_user_id, require_any_user
 from app.core.exceptions import NotFoundError
 
 router = APIRouter()

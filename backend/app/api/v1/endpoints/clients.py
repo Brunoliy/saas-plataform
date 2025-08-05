@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends
 
 from app.schemas.common import PaginatedResponse
-from app.security import require_any_user
+from app.core.security import require_any_user
 
 router = APIRouter()
 

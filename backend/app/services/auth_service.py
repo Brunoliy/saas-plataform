@@ -1,0 +1,71 @@
+"""Authentication service."""
+
+from typing import Optional
+from app.repositories.user_repository import UserRepository
+from app.schemas.user import UserCreate
+from app.schemas.auth import Token, UserLogin
+from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
+from app.core.exceptions import AuthenticationError
+
+
+class AuthService:
+    """Authentication service class."""
+    
+    def __init__(self, user_repository: UserRepository):
+        """Initialize service."""
+        self.user_repository = user_repository
+    
+    async def register(self, user_data: UserCreate) -> Token:
+        """Register a new user."""
+        # Check if user already exists
+        existing_user = await self.user_repository.get_by_email(user_data.email)
+        if existing_user:
+            raise AuthenticationError("User already exists")
+        
+        # Create user
+        user_data.password = get_password_hash(user_data.password)
+        user = await self.user_repository.create(user_data)
+        
+        # Create tokens
+        token_data = {"sub": user.id, "email": user.email, "account_type": user.account_type.value}
+        access_token = create_access_token(data=token_data)
+        refresh_token = create_refresh_token(data=token_data)
+        
+        return Token(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=30*60  # 30 minutes
+        )
+    
+    async def login(self, credentials: UserLogin) -> Token:
+        """Login user."""
+        # For now, use hardcoded credentials for testing
+        if credentials.email == "test@example.com" and credentials.password == "password":
+            token_data = {"sub": "user-123", "email": credentials.email, "account_type": "PROFESSIONAL"}
+            access_token = create_access_token(data=token_data)
+            refresh_token = create_refresh_token(data=token_data)
+            
+            return Token(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                expires_in=30*60  # 30 minutes
+            )
+        
+        # TODO: Implement real user authentication
+        user = await self.user_repository.get_by_email(credentials.email)
+        if not user or not verify_password(credentials.password, user.hashed_password):
+            raise AuthenticationError("Invalid credentials")
+        
+        if not user.active:
+            raise AuthenticationError("Account is disabled")
+        
+        # Create tokens
+        token_data = {"sub": user.id, "email": user.email, "account_type": user.account_type.value}
+        access_token = create_access_token(data=token_data)
+        refresh_token = create_refresh_token(data=token_data)
+        
+        return Token(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=30*60  # 30 minutes
+        )

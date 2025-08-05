@@ -3,6 +3,8 @@
 from datetime import datetime, timedelta
 from typing import Optional, Union
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import ValidationError
@@ -82,22 +84,32 @@ def verify_token(token: str, token_type: str = "access") -> TokenData:
         raise AuthenticationError("Invalid token data")
 
 
-def get_current_user_id(token: str) -> str:
+# OAuth2 scheme for FastAPI
+security = HTTPBearer()
+
+def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Get current user ID from token."""
-    token_data = verify_token(token)
+    token_data = verify_token(credentials.credentials)
     return token_data.user_id
 
 
-def get_current_user_email(token: str) -> str:
+def get_current_user_email(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Get current user email from token."""
-    token_data = verify_token(token)
+    token_data = verify_token(credentials.credentials)
     return token_data.email
 
 
-def get_current_user_account_type(token: str) -> str:
+def get_current_user_account_type(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Get current user account type from token."""
-    token_data = verify_token(token)
+    token_data = verify_token(credentials.credentials)
     return token_data.account_type
+
+
+def require_any_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """Require any valid user account type and return user ID."""
+    token_data = verify_token(credentials.credentials)
+    check_permissions(token_data.account_type, ["PROFESSIONAL", "CLIENT"])
+    return token_data.user_id
 
 
 def check_permissions(user_account_type: str, required_account_types: list[str]) -> None:
