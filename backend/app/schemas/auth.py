@@ -11,7 +11,7 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    expires_in: int
+    expires_in: int = 1800  # 30 minutes default
 
 
 class TokenData(BaseModel):

@@ -10,7 +10,7 @@ YELLOW := \033[0;33m
 BLUE := \033[0;34m
 NC := \033[0m # No Color
 
-.PHONY: help create-venv create-venv-mac create-venv-aws clean-venv install-deps dev test test-coverage test-file ruff ruff-check ruff-fix migrate migrate-up migrate-down shell lint type-check format check-all
+.PHONY: help create-venv create-venv-mac create-venv-wsl clean-venv install-deps dev test test-coverage test-file ruff ruff-check ruff-fix migrate migrate-up migrate-down shell lint type-check format check-all
 
 help: ## Show this help message
 	@echo "$(BLUE)SaaS Platform Backend - Available Commands:$(NC)"
@@ -19,12 +19,10 @@ help: ## Show this help message
 
 create-venv: ## Create virtual environment (detects OS)
 	@echo "$(BLUE)Detecting OS and creating virtual environment...$(NC)"
-	@if [ "$(OS)" = "Windows_NT" ]; then \
-		$(MAKE) create-venv-windows; \
-	elif [ "$$(uname)" = "Darwin" ]; then \
+	@if [ "$$(uname)" = "Darwin" ]; then \
 		$(MAKE) create-venv-mac; \
 	else \
-		$(MAKE) create-venv-aws; \
+		$(MAKE) create-venv-wsl; \
 	fi
 
 create-venv-mac: ## Create virtual environment for macOS
@@ -57,103 +55,42 @@ create-venv-mac: ## Create virtual environment for macOS
 	@echo "$(GREEN)Virtual environment created successfully!$(NC)"
 	@echo "$(BLUE)To activate: source $(VENV_NAME)/bin/activate$(NC)"
 
-create-venv-aws: ## Create virtual environment for AWS/Linux
-	@echo "$(BLUE)Setting up environment for AWS/Linux...$(NC)"
-	@echo "$(YELLOW)Installing Python $(PYTHON_VERSION) with pyenv...$(NC)"
-	@if ! command -v pyenv &> /dev/null; then \
-		echo "$(RED)pyenv not found. Installing...$(NC)"; \
-		curl https://pyenv.run | bash; \
-		echo 'export PYENV_ROOT="$$HOME/.pyenv"' >> ~/.bashrc; \
-		echo 'command -v pyenv >/dev/null || export PATH="$$PYENV_ROOT/bin:$$PATH"' >> ~/.bashrc; \
-		echo 'eval "$$(pyenv init -)"' >> ~/.bashrc; \
-		source ~/.bashrc; \
-	fi
-	@pyenv install $(PYTHON_VERSION) -s
-	@echo "$(YELLOW)Setting global Python version...$(NC)"
-	@pyenv global $(PYTHON_VERSION)
-	@echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)"
-	@rm -rf $(VENV_NAME)
-	@echo "$(YELLOW)Creating virtual environment...$(NC)"
-	@python$(PYTHON_VERSION) -m venv $(VENV_NAME)
-	@echo "$(YELLOW)Setting pyenv local...$(NC)"
-	@pyenv local $(PYTHON_VERSION)
-	@echo "$(YELLOW)Activating virtual environment...$(NC)"
-	@source $(VENV_NAME)/bin/activate && \
-	echo "$(YELLOW)Upgrading pip...$(NC)" && \
-	pip install --upgrade pip && \
-	echo "$(YELLOW)Installing Poetry...$(NC)" && \
-	pip install poetry && \
-	echo "$(YELLOW)Configuring Poetry to use virtual environment...$(NC)" && \
-	poetry config virtualenvs.create false && \
-	poetry config virtualenvs.in-project true && \
-	echo "$(YELLOW)Installing dependencies...$(NC)" && \
-	poetry install --sync --no-root
-	@echo "$(GREEN)Virtual environment created successfully!$(NC)"
-	@echo "$(BLUE)To activate: source $(VENV_NAME)/bin/activate$(NC)"
 
 create-venv-wsl: ## Create virtual environment for WSL/Ubuntu
 	@echo "$(BLUE)Setting up environment for WSL/Ubuntu...$(NC)"
-	@echo "$(YELLOW)Installing Python $(PYTHON_VERSION) with pyenv...$(NC)"
+	@echo "$(YELLOW)Checking for pyenv installation...$(NC)"
 	@if ! command -v pyenv &> /dev/null; then \
 		echo "$(RED)pyenv not found. Installing...$(NC)"; \
 		curl https://pyenv.run | bash; \
 		echo 'export PYENV_ROOT="$$HOME/.pyenv"' >> ~/.bashrc; \
 		echo 'command -v pyenv >/dev/null || export PATH="$$PYENV_ROOT/bin:$$PATH"' >> ~/.bashrc; \
 		echo 'eval "$$(pyenv init -)"' >> ~/.bashrc; \
-		source ~/.bashrc; \
+		echo "$(YELLOW)Please restart your shell or run: source ~/.bashrc$(NC)"; \
 	fi
-	@pyenv install $(PYTHON_VERSION) -s
-	@echo "$(YELLOW)Setting global Python version...$(NC)"
-	@pyenv global $(PYTHON_VERSION)
-	@echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)"
-	@rm -rf $(VENV_NAME)
-	@echo "$(YELLOW)Creating virtual environment...$(NC)"
-	@python$(PYTHON_VERSION) -m venv $(VENV_NAME)
-	@echo "$(YELLOW)Setting pyenv local...$(NC)"
-	@pyenv local $(PYTHON_VERSION)
-	@echo "$(YELLOW)Activating virtual environment...$(NC)"
-	@source $(VENV_NAME)/bin/activate && \
-	echo "$(YELLOW)Upgrading pip...$(NC)" && \
+	@echo "$(YELLOW)Setting up pyenv environment...$(NC)"
+	@export PYENV_ROOT="$$HOME/.pyenv" && \
+	export PATH="$$PYENV_ROOT/bin:$$PATH" && \
+	eval "$$(pyenv init -)" && \
+	echo "$(YELLOW)Installing Python $(PYTHON_VERSION)...$(NC)" && \
+	pyenv install $(PYTHON_VERSION) -s && \
+	echo "$(YELLOW)Setting global Python version...$(NC)" && \
+	pyenv global $(PYTHON_VERSION) && \
+	echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)" && \
+	rm -rf $(VENV_NAME) && \
+	echo "$(YELLOW)Creating virtual environment...$(NC)" && \
+	python$(PYTHON_VERSION) -m venv $(VENV_NAME) && \
+	echo "$(YELLOW)Setting pyenv local...$(NC)" && \
+	pyenv local $(PYTHON_VERSION) && \
+	echo "$(YELLOW)Activating virtual environment and installing dependencies...$(NC)" && \
+	. $(VENV_NAME)/bin/activate && \
 	pip install --upgrade pip && \
-	echo "$(YELLOW)Installing Poetry...$(NC)" && \
 	pip install poetry && \
-	echo "$(YELLOW)Configuring Poetry to use virtual environment...$(NC)" && \
 	poetry config virtualenvs.create false && \
 	poetry config virtualenvs.in-project true && \
-	echo "$(YELLOW)Installing dependencies...$(NC)" && \
-	poetry install --sync --no-root
+	poetry install --no-root
 	@echo "$(GREEN)Virtual environment created successfully!$(NC)"
 	@echo "$(BLUE)To activate: source $(VENV_NAME)/bin/activate$(NC)"
 
-create-venv-windows: ## Create virtual environment for Windows
-	@echo "$(BLUE)Setting up environment for Windows...$(NC)"
-	@echo "$(YELLOW)Installing Python $(PYTHON_VERSION) with pyenv-win...$(NC)"
-	@if ! command -v pyenv &> /dev/null; then \
-		echo "$(RED)pyenv-win not found. Please install it manually or use chocolatey: choco install pyenv-win$(NC)"; \
-		exit 1; \
-	fi
-	@pyenv install $(PYTHON_VERSION) -s
-	@echo "$(YELLOW)Setting global Python version...$(NC)"
-	@pyenv global $(PYTHON_VERSION)
-	@echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)"
-	@if exist $(VENV_NAME) rmdir /s /q $(VENV_NAME)
-	@echo "$(YELLOW)Creating virtual environment...$(NC)"
-	@python -m venv $(VENV_NAME)
-	@echo "$(YELLOW)Setting pyenv local...$(NC)"
-	@pyenv local $(PYTHON_VERSION)
-	@echo "$(YELLOW)Activating virtual environment...$(NC)"
-	@$(VENV_NAME)\Scripts\activate && \
-	echo "$(YELLOW)Upgrading pip...$(NC)" && \
-	python -m pip install --upgrade pip && \
-	echo "$(YELLOW)Installing Poetry...$(NC)" && \
-	pip install poetry && \
-	echo "$(YELLOW)Configuring Poetry to use virtual environment...$(NC)" && \
-	poetry config virtualenvs.create false && \
-	poetry config virtualenvs.in-project true && \
-	echo "$(YELLOW)Installing dependencies...$(NC)" && \
-	poetry install --sync --no-root
-	@echo "$(GREEN)Virtual environment created successfully!$(NC)"
-	@echo "$(BLUE)To activate: $(VENV_NAME)\Scripts\activate$(NC)"
 
 clean-venv: ## Remove virtual environment
 	@echo "$(YELLOW)Removing virtual environment...$(NC)"

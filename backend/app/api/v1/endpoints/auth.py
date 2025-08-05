@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.schemas.auth import Token, UserLogin, RefreshToken
-from app.security import create_access_token, create_refresh_token, verify_token
+from app.schemas.user import UserCreate
+from app.core.security import create_access_token, create_refresh_token, verify_token
 from app.core.exceptions import AuthenticationError
 
 router = APIRouter()
@@ -35,6 +36,16 @@ async def refresh_token(refresh_token_data: RefreshToken):
         return Token(access_token=access_token, refresh_token=new_refresh_token)
     except Exception:
         raise AuthenticationError("Invalid refresh token")
+
+
+@router.post("/register", response_model=Token)
+async def register(user_data: UserCreate):
+    """Register a new user."""
+    # TODO: Implement actual registration logic
+    # This is a placeholder implementation
+    access_token = create_access_token(data={"sub": user_data.email})
+    refresh_token = create_refresh_token(data={"sub": user_data.email})
+    return Token(access_token=access_token, refresh_token=refresh_token)
 
 
 @router.post("/logout")
