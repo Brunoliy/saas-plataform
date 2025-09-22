@@ -1,102 +1,168 @@
 """User endpoints."""
 
 from typing import List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 from app.schemas.common import PaginatedResponse
 from app.core.security import get_current_user_id, require_any_user
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import NotFoundError, ConflictError
+from app.database.session import get_db
+from app.services.user_service import UserService
+from app.repositories.user_repository import UserRepository
 
 router = APIRouter()
 
 
+def get_user_service(db: Session = Depends(get_db)) -> UserService:
+    """Get user service dependency."""
+    user_repository = UserRepository(db)
+    return UserService(user_repository)
+
+
+@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(
+    user_data: UserCreate,
+    user_service: UserService = Depends(get_user_service)
+):
+    """Create a new user."""
+    try:
+        return user_service.create_user(user_data)
+    except ConflictError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+
+
 @router.get("/me", response_model=UserResponse)
-async def get_current_user(current_user_id: str = Depends(get_current_user_id)):
+async def get_current_user(
+    current_user_id: str = Depends(get_current_user_id),
+    user_service: UserService = Depends(get_user_service)
+):
     """Get current user information."""
-    # TODO: Implement actual user retrieval logic
-    # This is a placeholder implementation
-    return UserResponse(
-        id=current_user_id,
-        email="user@example.com",
-        full_name="Test User",
-        phone="+1234567890",
-        account_type="PROFESSIONAL",
-        active=True
-    )
+    try:
+        user_uuid = UUID(current_user_id)
+        return user_service.get_user_by_id(user_uuid)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format")
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.put("/me", response_model=UserResponse)
 async def update_current_user(
     user_update: UserUpdate,
-    current_user_id: str = Depends(get_current_user_id)
+    current_user_id: str = Depends(get_current_user_id),
+    user_service: UserService = Depends(get_user_service)
 ):
     """Update current user information."""
-    # TODO: Implement actual user update logic
-    # This is a placeholder implementation
-    return UserResponse(
-        id=current_user_id,
-        email="user@example.com",
-        full_name=user_update.full_name or "Test User",
-        phone=user_update.phone or "+1234567890",
-        account_type="PROFESSIONAL",
-        active=True
-    )
+    try:
+        user_uuid = UUID(current_user_id)
+        return user_service.update_user(user_uuid, user_update)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format")
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("/", response_model=PaginatedResponse[UserResponse])
 async def list_users(
     skip: int = 0,
     limit: int = 20,
-    current_user_id: str = Depends(require_any_user)
+    current_user_id: str = Depends(require_any_user),
+    user_service: UserService = Depends(get_user_service)
 ):
     """List users with pagination."""
-    # TODO: Implement actual user listing logic
-    # This is a placeholder implementation
-    users = [
-        UserResponse(
-            id="user-1",
-            email="user1@example.com",
-            full_name="User One",
-            phone="+1234567890",
-            account_type="PROFESSIONAL",
-            active=True
-        ),
-        UserResponse(
-            id="user-2",
-            email="user2@example.com",
-            full_name="User Two",
-            phone="+1234567891",
-            account_type="CLIENT",
-            active=True
-        )
-    ]
-    
+    users, total = user_service.list_users(skip=skip, limit=limit)
+
+    pages = (total + limit - 1) // limit if limit > 0 else 1
+    current_page = (skip // limit) + 1 if limit > 0 else 1
+
     return PaginatedResponse(
         items=users,
-        total=len(users),
-        page=skip // limit + 1,
+        total=total,
+        page=current_page,
         size=limit,
-        pages=1
+        pages=pages
     )
 
 
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: str,
-    current_user_id: str = Depends(require_any_user)
+    current_user_id: str = Depends(require_any_user),
+    user_service: UserService = Depends(get_user_service)
 ):
     """Get user by ID."""
-    # TODO: Implement actual user retrieval logic
-    # This is a placeholder implementation
-    if user_id == "user-1":
-        return UserResponse(
-            id=user_id,
-            email="user1@example.com",
-            full_name="User One",
-            phone="+1234567890",
-            account_type="PROFESSIONAL",
-            active=True
-        )
-    
-    raise NotFoundError(f"User with ID {user_id} not found") 
+    try:
+        user_uuid = UUID(user_id)
+        return user_service.get_user_by_id(user_uuid)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format")
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.put("/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: str,
+    user_update: UserUpdate,
+    current_user_id: str = Depends(require_any_user),
+    user_service: UserService = Depends(get_user_service)
+):
+    """Update user by ID."""
+    try:
+        user_uuid = UUID(user_id)
+        return user_service.update_user(user_uuid, user_update)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format")
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: str,
+    current_user_id: str = Depends(require_any_user),
+    user_service: UserService = Depends(get_user_service)
+):
+    """Soft delete user by ID."""
+    try:
+        user_uuid = UUID(user_id)
+        user_service.delete_user(user_uuid)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format")
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.patch("/{user_id}/activate", response_model=UserResponse)
+async def activate_user(
+    user_id: str,
+    current_user_id: str = Depends(require_any_user),
+    user_service: UserService = Depends(get_user_service)
+):
+    """Activate user by ID."""
+    try:
+        user_uuid = UUID(user_id)
+        return user_service.activate_user(user_uuid)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format")
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.patch("/{user_id}/deactivate", response_model=UserResponse)
+async def deactivate_user(
+    user_id: str,
+    current_user_id: str = Depends(require_any_user),
+    user_service: UserService = Depends(get_user_service)
+):
+    """Deactivate user by ID."""
+    try:
+        user_uuid = UUID(user_id)
+        return user_service.deactivate_user(user_uuid)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format")
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) 

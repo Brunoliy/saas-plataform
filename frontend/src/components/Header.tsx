@@ -35,6 +35,12 @@ const Header = () => {
                 >
                   Professionals
                 </Link>
+                <Link
+                  to="/users"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Users
+                </Link>
               </>
             )}
           </nav>
