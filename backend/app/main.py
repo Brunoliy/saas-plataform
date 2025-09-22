@@ -12,7 +12,7 @@ from structlog import get_logger
 
 from app.core.config import settings
 from app.core.container import container
-from app.core.exceptions import SaaSPlatformException
+from app.core.exceptions import SaaSPlatformException, AuthenticationError, AuthorizationError, NotFoundError, ConflictError
 from app.core.logging import setup_logging, CorrelationIdMiddleware, log_request, log_error
 from app.api.v1.router import api_router
 
@@ -99,12 +99,76 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-@app.exception_handler(SaaSPlatformException)
-async def saas_platform_exception_handler(request: Request, exc: SaaSPlatformException):
-    """Handle SaaS Platform exceptions."""
+@app.exception_handler(AuthenticationError)
+async def authentication_exception_handler(request: Request, exc: AuthenticationError):
+    """Handle authentication exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
-    
+
+    return JSONResponse(
+        status_code=401,
+        content={
+            "error_code": exc.error_code or "AUTHENTICATION_ERROR",
+            "message": exc.message,
+            "details": exc.details,
+        },
+    )
+
+
+@app.exception_handler(AuthorizationError)
+async def authorization_exception_handler(request: Request, exc: AuthorizationError):
+    """Handle authorization exceptions."""
+    logger = get_logger("app")
+    log_error(logger, exc, {"path": request.url.path})
+
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error_code": exc.error_code or "AUTHORIZATION_ERROR",
+            "message": exc.message,
+            "details": exc.details,
+        },
+    )
+
+
+@app.exception_handler(NotFoundError)
+async def not_found_exception_handler(request: Request, exc: NotFoundError):
+    """Handle not found exceptions."""
+    logger = get_logger("app")
+    log_error(logger, exc, {"path": request.url.path})
+
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error_code": exc.error_code or "NOT_FOUND_ERROR",
+            "message": exc.message,
+            "details": exc.details,
+        },
+    )
+
+
+@app.exception_handler(ConflictError)
+async def conflict_exception_handler(request: Request, exc: ConflictError):
+    """Handle conflict exceptions."""
+    logger = get_logger("app")
+    log_error(logger, exc, {"path": request.url.path})
+
+    return JSONResponse(
+        status_code=409,
+        content={
+            "error_code": exc.error_code or "CONFLICT_ERROR",
+            "message": exc.message,
+            "details": exc.details,
+        },
+    )
+
+
+@app.exception_handler(SaaSPlatformException)
+async def saas_platform_exception_handler(request: Request, exc: SaaSPlatformException):
+    """Handle generic SaaS Platform exceptions."""
+    logger = get_logger("app")
+    log_error(logger, exc, {"path": request.url.path})
+
     return JSONResponse(
         status_code=400,
         content={

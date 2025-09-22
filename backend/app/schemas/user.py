@@ -32,15 +32,16 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     """User response schema."""
-    
+
     id: str
     active: bool
     created_at: datetime
     updated_at: datetime
-    
+    deleted_at: Optional[datetime] = None
+
     class Config:
         """Pydantic configuration."""
-        
+
         from_attributes = True
 
 
