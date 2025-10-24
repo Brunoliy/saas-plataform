@@ -1,55 +1,65 @@
 """Authentication endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
 from app.schemas.auth import Token, UserLogin, RefreshToken
 from app.schemas.user import UserCreate
-from app.core.security import create_access_token, create_refresh_token, verify_token
-from app.core.exceptions import AuthenticationError
+from app.core.exceptions import AuthenticationError, ConflictError
+from app.database.session import get_db
+from app.services.auth_service import AuthService
+from app.repositories.user_repository import UserRepository
 
 router = APIRouter()
 
 
+def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
+    """Get auth service dependency."""
+    user_repository = UserRepository(db)
+    return AuthService(user_repository)
+
+
+@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
+async def register(
+    user_data: UserCreate,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """Register a new user."""
+    try:
+        return await auth_service.register(user_data)
+    except AuthenticationError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
 @router.post("/login", response_model=Token)
-async def login(user_credentials: UserLogin):
+async def login(
+    user_credentials: UserLogin,
+    auth_service: AuthService = Depends(get_auth_service)
+):
     """Login endpoint."""
-    # TODO: Implement actual authentication logic
-    # This is a placeholder implementation
-    if user_credentials.email == "test@example.com" and user_credentials.password == "password":
-        access_token = create_access_token(data={"sub": user_credentials.email})
-        refresh_token = create_refresh_token(data={"sub": user_credentials.email})
-        return Token(access_token=access_token, refresh_token=refresh_token)
-    
-    raise AuthenticationError("Invalid credentials")
+    try:
+        return await auth_service.login(user_credentials)
+    except AuthenticationError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 
 @router.post("/refresh", response_model=Token)
-async def refresh_token(refresh_token_data: RefreshToken):
+async def refresh_token(
+    refresh_token_data: RefreshToken,
+    auth_service: AuthService = Depends(get_auth_service)
+):
     """Refresh access token."""
-    # TODO: Implement token refresh logic
-    # This is a placeholder implementation
     try:
-        payload = verify_token(refresh_token_data.refresh_token)
-        access_token = create_access_token(data={"sub": payload.get("sub")})
-        new_refresh_token = create_refresh_token(data={"sub": payload.get("sub")})
-        return Token(access_token=access_token, refresh_token=new_refresh_token)
-    except Exception:
-        raise AuthenticationError("Invalid refresh token")
-
-
-@router.post("/register", response_model=Token)
-async def register(user_data: UserCreate):
-    """Register a new user."""
-    # TODO: Implement actual registration logic
-    # This is a placeholder implementation
-    access_token = create_access_token(data={"sub": user_data.email})
-    refresh_token = create_refresh_token(data={"sub": user_data.email})
-    return Token(access_token=access_token, refresh_token=refresh_token)
+        return await auth_service.refresh_token(refresh_token_data.refresh_token)
+    except AuthenticationError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 
 @router.post("/logout")
 async def logout():
     """Logout endpoint."""
-    # TODO: Implement logout logic (e.g., blacklist token)
+    # Token-based logout is handled client-side by discarding the token
+    # For more advanced scenarios, implement token blacklisting here
     return {"message": "Successfully logged out"} 

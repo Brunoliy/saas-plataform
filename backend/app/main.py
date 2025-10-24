@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.container import container
 from app.core.exceptions import SaaSPlatformException, AuthenticationError, AuthorizationError, NotFoundError, ConflictError
 from app.core.logging import setup_logging, CorrelationIdMiddleware, log_request, log_error
+from app.core.sentry import init_sentry
 from app.api.v1.router import api_router
 
 
@@ -22,6 +23,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     setup_logging()
+    init_sentry()  # Initialize Sentry for error tracking
     logger = get_logger("app")
     logger.info("Starting SaaS Platform API")
     
