@@ -1,52 +1,51 @@
 # Core FastAPI
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-multipart==0.0.6
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
 
 # Database
-sqlalchemy==2.0.25
-alembic==1.13.1
-psycopg2-binary==2.9.9
+sqlalchemy>=2.0.25
+alembic>=1.13.1
+psycopg2-binary>=2.9.9
 
 # Pydantic
 pydantic>=2.5.3,<3.0.0
 pydantic-settings>=2.1.0,<3.0.0
 
 # Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-dotenv==1.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-dotenv>=1.0.0
 
 # AWS S3
-boto3==1.34.25
-botocore==1.34.25
+boto3>=1.34.25
+botocore>=1.34.25
 
 # Email
-resend==0.7.0
+resend>=0.7.0
 
 # Redis
-redis==5.0.1
+redis>=5.0.1
 
 # Monitoring
-sentry-sdk[fastapi]==1.39.2
+sentry-sdk[fastapi]>=1.39.2
 
 # Logging
-structlog==24.1.0
+structlog>=24.1.0
 
 # Dependency Injection
 dependency-injector>=4.41.0
 
 # HTTP Client
-httpx==0.26.0
+httpx>=0.26.0
 
 # Hugging Face (for AI)
-huggingface-hub==0.20.2
+huggingface-hub>=0.20.2
 
 # Utilities
-python-dateutil==2.8.2
+python-dateutil>=2.8.2
 
-# Development & Testing (optional, but useful)
-pytest==7.4.4
-pytest-asyncio==0.23.3
-pytest-cov==4.1.0
-httpx==0.26.0
+# Development & Testing
+pytest>=7.4.4
+pytest-asyncio>=0.23.3
+pytest-cov>=4.1.0
