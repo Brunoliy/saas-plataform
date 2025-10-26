@@ -39,33 +39,46 @@ class AuthService:
     
     async def login(self, credentials: UserLogin) -> Token:
         """Login user."""
-        # For now, use hardcoded credentials for testing
-        if credentials.email == "test@example.com" and credentials.password == "password":
-            token_data = {"sub": "user-123", "email": credentials.email, "account_type": "PROFESSIONAL"}
-            access_token = create_access_token(data=token_data)
-            refresh_token = create_refresh_token(data=token_data)
-            
-            return Token(
-                access_token=access_token,
-                refresh_token=refresh_token,
-                expires_in=30*60  # 30 minutes
-            )
-        
-        # TODO: Implement real user authentication
         user = await self.user_repository.get_by_email(credentials.email)
         if not user or not verify_password(credentials.password, user.hashed_password):
             raise AuthenticationError("Invalid credentials")
-        
+
         if not user.active:
             raise AuthenticationError("Account is disabled")
-        
+
         # Create tokens
-        token_data = {"sub": user.id, "email": user.email, "account_type": user.account_type.value}
+        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value}
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
-        
+
         return Token(
             access_token=access_token,
             refresh_token=refresh_token,
+            expires_in=30*60  # 30 minutes
+        )
+
+    async def refresh_token(self, refresh_token: str) -> Token:
+        """Refresh access token using refresh token."""
+        from app.core.security import verify_token
+
+        # Verify refresh token
+        token_data = verify_token(refresh_token, token_type="refresh")
+
+        # Get user to ensure they still exist and are active
+        user = await self.user_repository.get_by_email(token_data.email)
+        if not user:
+            raise AuthenticationError("User not found")
+
+        if not user.active:
+            raise AuthenticationError("Account is disabled")
+
+        # Create new tokens
+        new_token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value}
+        access_token = create_access_token(data=new_token_data)
+        new_refresh_token = create_refresh_token(data=new_token_data)
+
+        return Token(
+            access_token=access_token,
+            refresh_token=new_refresh_token,
             expires_in=30*60  # 30 minutes
         )

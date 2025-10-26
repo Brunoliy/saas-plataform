@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, professionals, clients, projects, proposals, reviews, skills
+from app.api.v1.endpoints import auth, users, professionals, clients, projects, proposals, reviews, skills, recommendations
 
 # Create main API router
 api_router = APIRouter()
@@ -15,4 +15,5 @@ api_router.include_router(clients.router, prefix="/clients", tags=["Clients"])
 api_router.include_router(projects.router, prefix="/projects", tags=["Projects"])
 api_router.include_router(proposals.router, prefix="/proposals", tags=["Proposals"])
 api_router.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
-api_router.include_router(skills.router, prefix="/skills", tags=["Skills"]) 
+api_router.include_router(skills.router, prefix="/skills", tags=["Skills"])
+api_router.include_router(recommendations.router, prefix="/recommendations", tags=["AI Recommendations"]) 
