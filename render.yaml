@@ -2,6 +2,6 @@ services:
   - type: web
     name: saas-platform-backend
     runtime: python
-    buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements.txt
+    buildCommand: cd backend && pip install --upgrade pip && pip install poetry && poetry config virtualenvs.create false && poetry install --only main
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     plan: free
