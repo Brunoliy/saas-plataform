@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 
 const Header = () => {
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { isAuthenticated, logout } = useAuthStore()
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">

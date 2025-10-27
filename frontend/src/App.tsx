@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import { useAuthStore } from '@/stores/authStore'
 import Layout from '@/components/Layout'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
@@ -13,8 +12,6 @@ import UsersPage from '@/pages/UsersPage'
 import ProtectedRoute from '@/components/ProtectedRoute'
 
 function App() {
-  const { isAuthenticated } = useAuthStore()
-
   return (
     <Routes>
       {/* Public routes */}

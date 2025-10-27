@@ -4,7 +4,6 @@ import { User, PaginatedResponse } from '../types/user';
 import { toast } from 'react-hot-toast';
 import {
   PlusIcon,
-  PencilIcon,
   TrashIcon,
   CheckCircleIcon,
   XCircleIcon,
