@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { authService } from '@/services/authService'
+import { toast } from 'react-hot-toast'
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -10,27 +12,43 @@ const RegisterPage = () => {
     accountType: 'client',
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
   const { login } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    // TODO: Implement actual registration logic
-    setTimeout(() => {
-      login(
-        {
-          id: '1',
-          email: formData.email,
-          full_name: formData.fullName,
-          account_type: formData.accountType as 'professional' | 'client',
-        },
-        'fake-token'
-      )
+    setError('')
+
+    try {
+      // Register user
+      const authResponse = await authService.register({
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.fullName,
+        account_type: formData.accountType as 'client' | 'professional',
+      })
+
+      // Store tokens
+      localStorage.setItem('access_token', authResponse.access_token)
+      localStorage.setItem('refresh_token', authResponse.refresh_token)
+
+      // Get user data
+      const userData = await authService.getCurrentUser()
+
+      // Update auth store
+      login(userData, authResponse.access_token)
+
+      toast.success('Account created successfully!')
       navigate('/dashboard')
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.detail || 'Failed to create account. Please try again.'
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -119,6 +137,12 @@ const RegisterPage = () => {
               </select>
             </div>
           </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-4">
+              <div className="text-sm text-red-700">{error}</div>
+            </div>
+          )}
 
           <div>
             <button

@@ -1,32 +1,48 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { authService } from '@/services/authService'
+import { toast } from 'react-hot-toast'
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
   const { login } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    // TODO: Implement actual login logic
-    setTimeout(() => {
-      login(
-        {
-          id: '1',
-          email: email,
-          full_name: 'Test User',
-          account_type: 'client',
-        },
-        'fake-token'
-      )
+    setError('')
+
+    try {
+      // Login user
+      const authResponse = await authService.login({
+        email,
+        password,
+      })
+
+      // Store tokens
+      localStorage.setItem('access_token', authResponse.access_token)
+      localStorage.setItem('refresh_token', authResponse.refresh_token)
+
+      // Get user data
+      const userData = await authService.getCurrentUser()
+
+      // Update auth store
+      login(userData, authResponse.access_token)
+
+      toast.success('Logged in successfully!')
       navigate('/dashboard')
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.detail || 'Invalid email or password.'
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -78,6 +94,12 @@ const LoginPage = () => {
               />
             </div>
           </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-4">
+              <div className="text-sm text-red-700">{error}</div>
+            </div>
+          )}
 
           <div>
             <button
