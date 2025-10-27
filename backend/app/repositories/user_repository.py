@@ -4,12 +4,9 @@ from typing import Optional, List
 from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
-from passlib.context import CryptContext
 
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UserRepository:
@@ -21,11 +18,9 @@ class UserRepository:
 
     def create(self, user_data: UserCreate) -> User:
         """Create a new user."""
-        hashed_password = pwd_context.hash(user_data.password)
-
         db_user = User(
             email=user_data.email,
-            password_hash=hashed_password,
+            password_hash=user_data.password,  # Password should already be hashed by service layer
             full_name=user_data.full_name,
             phone=user_data.phone,
             account_type=user_data.account_type,

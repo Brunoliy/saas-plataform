@@ -18,19 +18,19 @@ class AuthService:
     async def register(self, user_data: UserCreate) -> Token:
         """Register a new user."""
         # Check if user already exists
-        existing_user = await self.user_repository.get_by_email(user_data.email)
+        existing_user = self.user_repository.get_by_email(user_data.email)
         if existing_user:
             raise AuthenticationError("User already exists")
-        
-        # Create user
+
+        # Hash password and create user
         user_data.password = get_password_hash(user_data.password)
-        user = await self.user_repository.create(user_data)
-        
+        user = self.user_repository.create(user_data)
+
         # Create tokens
-        token_data = {"sub": user.id, "email": user.email, "account_type": user.account_type.value}
+        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type}
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
-        
+
         return Token(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -39,15 +39,15 @@ class AuthService:
     
     async def login(self, credentials: UserLogin) -> Token:
         """Login user."""
-        user = await self.user_repository.get_by_email(credentials.email)
-        if not user or not verify_password(credentials.password, user.hashed_password):
+        user = self.user_repository.get_by_email(credentials.email)
+        if not user or not verify_password(credentials.password, user.password_hash):
             raise AuthenticationError("Invalid credentials")
 
         if not user.active:
             raise AuthenticationError("Account is disabled")
 
         # Create tokens
-        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value}
+        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type}
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
 
@@ -65,7 +65,7 @@ class AuthService:
         token_data = verify_token(refresh_token, token_type="refresh")
 
         # Get user to ensure they still exist and are active
-        user = await self.user_repository.get_by_email(token_data.email)
+        user = self.user_repository.get_by_email(token_data.email)
         if not user:
             raise AuthenticationError("User not found")
 
@@ -73,7 +73,7 @@ class AuthService:
             raise AuthenticationError("Account is disabled")
 
         # Create new tokens
-        new_token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value}
+        new_token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type}
         access_token = create_access_token(data=new_token_data)
         new_refresh_token = create_refresh_token(data=new_token_data)
 
