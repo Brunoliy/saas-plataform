@@ -16,9 +16,9 @@ const HomePage: React.FC = () => {
               Bem-vindo, {user.full_name}!
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              {user.account_type === 'client'
+              {user.account_type === 'company'
                 ? 'Encontre os melhores profissionais para seus projetos'
-                : 'Conecte-se com clientes e projetos incríveis'
+                : 'Conecte-se com empresas e projetos incríveis'
               }
             </p>
           </div>
@@ -52,7 +52,7 @@ const HomePage: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Projetos</h3>
                 <p className="text-sm text-gray-600">
-                  {user.account_type === 'client' ? 'Gerencie seus projetos' : 'Explore oportunidades'}
+                  {user.account_type === 'company' ? 'Gerencie seus projetos' : 'Explore oportunidades'}
                 </p>
               </div>
             </Link>
@@ -125,13 +125,13 @@ const HomePage: React.FC = () => {
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">0</div>
                   <div className="text-sm text-gray-600">
-                    {user.account_type === 'client' ? 'Projetos' : 'Propostas'}
+                    {user.account_type === 'company' ? 'Projetos' : 'Propostas'}
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">0</div>
                   <div className="text-sm text-gray-600">
-                    {user.account_type === 'client' ? 'Propostas' : 'Projetos'}
+                    {user.account_type === 'company' ? 'Propostas' : 'Projetos'}
                   </div>
                 </div>
               </div>
@@ -183,10 +183,10 @@ const HomePage: React.FC = () => {
                   <p className="text-sm text-gray-500 text-center mb-4">Ou experimente com uma conta demo:</p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                     <button
-                      onClick={() => loginDemo('client')}
+                      onClick={() => loginDemo('company')}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
                     >
-                      🏢 Demo Cliente
+                      🏢 Demo Empresa
                     </button>
                     <button
                       onClick={() => loginDemo('professional')}

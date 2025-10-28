@@ -10,9 +10,9 @@ from app.models.base import BaseModel
 
 class AccountType(str, Enum):
     """Account type enumeration."""
-    
+
     PROFESSIONAL = "professional"
-    CLIENT = "client"
+    COMPANY = "company"
 
 
 class User(BaseModel):
@@ -24,7 +24,7 @@ class User(BaseModel):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=True)
-    account_type = Column(String(20), nullable=False, default=AccountType.CLIENT)
+    account_type = Column(String(20), nullable=False, default=AccountType.COMPANY)
     active = Column(Boolean, default=True, nullable=False)
     
     # Relationships

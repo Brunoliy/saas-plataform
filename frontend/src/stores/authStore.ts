@@ -5,7 +5,7 @@ interface User {
   id: string
   email: string
   full_name: string
-  account_type: 'professional' | 'client'
+  account_type: 'professional' | 'company'
 }
 
 interface AuthState {
@@ -15,7 +15,7 @@ interface AuthState {
   login: (user: User, token: string) => void
   logout: () => void
   updateUser: (user: User) => void
-  loginDemo: (accountType: 'client' | 'professional') => void
+  loginDemo: (accountType: 'company' | 'professional') => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -30,11 +30,11 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null, isAuthenticated: false }),
       updateUser: (user: User) =>
         set({ user }),
-      loginDemo: (accountType: 'client' | 'professional') => {
+      loginDemo: (accountType: 'company' | 'professional') => {
         const demoUser: User = {
           id: 'demo-' + accountType,
-          email: accountType === 'client' ? 'cliente@demo.com' : 'profissional@demo.com',
-          full_name: accountType === 'client' ? 'Cliente Demo' : 'Profissional Demo',
+          email: accountType === 'company' ? 'empresa@demo.com' : 'profissional@demo.com',
+          full_name: accountType === 'company' ? 'Empresa Demo' : 'Profissional Demo',
           account_type: accountType
         };
         set({ user: demoUser, token: 'demo-token', isAuthenticated: true });
