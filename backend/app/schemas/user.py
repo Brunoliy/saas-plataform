@@ -2,7 +2,8 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from uuid import UUID
+from pydantic import BaseModel, EmailStr, Field, field_serializer
 
 from app.models.user import AccountType
 
@@ -33,11 +34,16 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     """User response schema."""
 
-    id: str
+    id: UUID
     active: bool
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime] = None
+
+    @field_serializer('id')
+    def serialize_id(self, value: UUID, _info):
+        """Serialize UUID to string."""
+        return str(value)
 
     class Config:
         """Pydantic configuration."""
