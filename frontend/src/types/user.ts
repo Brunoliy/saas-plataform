@@ -1,9 +1,11 @@
+export type AccountType = 'professional' | 'company' | 'admin'
+
 export interface User {
   id: string;
   email: string;
   full_name: string;
   phone?: string;
-  account_type: 'CLIENT' | 'PROFESSIONAL';
+  account_type: AccountType;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -14,7 +16,7 @@ export interface UserCreate {
   email: string;
   full_name: string;
   phone?: string;
-  account_type: 'CLIENT' | 'PROFESSIONAL';
+  account_type: AccountType;
   password: string;
 }
 

@@ -147,6 +147,11 @@ def require_company(user_account_type: str) -> None:
     check_permissions(user_account_type, ["company"])
 
 
+def require_admin(user_account_type: str) -> None:
+    """Require admin account type."""
+    check_permissions(user_account_type, ["admin"])
+
+
 def require_any_user(user_account_type: str) -> None:
     """Require any valid user account type."""
-    check_permissions(user_account_type, ["professional", "company"])
+    check_permissions(user_account_type, ["professional", "company", "admin"])

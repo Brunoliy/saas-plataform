@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { AccountType } from '@/types/user'
 
 interface User {
   id: string
   email: string
   full_name: string
-  account_type: 'professional' | 'company'
+  account_type: AccountType
 }
 
 interface AuthState {

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 
 const Header = () => {
-  const { isAuthenticated, logout } = useAuthStore()
+  const { isAuthenticated, user, logout } = useAuthStore()
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -35,12 +35,14 @@ const Header = () => {
                 >
                   Professionals
                 </Link>
-                <Link
-                  to="/users"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Users
-                </Link>
+                {user?.account_type === 'admin' && (
+                  <Link
+                    to="/users"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Users
+                  </Link>
+                )}
               </>
             )}
           </nav>

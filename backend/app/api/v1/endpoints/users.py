@@ -6,7 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ConflictError, NotFoundError
-from app.core.security import get_current_user_id, require_any_user
+from app.core.security import (
+    get_current_user_account_type,
+    get_current_user_id,
+    require_admin,
+)
 from app.database.session import get_db
 from app.repositories.user_repository import UserRepository
 from app.schemas.common import PaginatedResponse
@@ -82,10 +86,11 @@ async def update_current_user(
 async def list_users(
     skip: int = 0,
     limit: int = 20,
-    current_user_id: str = Depends(require_any_user),
+    user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
 ):
-    """List users with pagination."""
+    """List users with pagination (admin only)."""
+    require_admin(user_account_type)
     users, total = user_service.list_users(skip=skip, limit=limit)
 
     pages = (total + limit - 1) // limit if limit > 0 else 1
@@ -99,10 +104,11 @@ async def list_users(
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: str,
-    current_user_id: str = Depends(require_any_user),
+    user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
 ):
-    """Get user by ID."""
+    """Get user by ID (admin only)."""
+    require_admin(user_account_type)
     try:
         user_uuid = UUID(user_id)
         return user_service.get_user_by_id(user_uuid)
@@ -118,10 +124,11 @@ async def get_user(
 async def update_user(
     user_id: str,
     user_update: UserUpdate,
-    current_user_id: str = Depends(require_any_user),
+    user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
 ):
-    """Update user by ID."""
+    """Update user by ID (admin only)."""
+    require_admin(user_account_type)
     try:
         user_uuid = UUID(user_id)
         return user_service.update_user(user_uuid, user_update)
@@ -136,10 +143,11 @@ async def update_user(
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     user_id: str,
-    current_user_id: str = Depends(require_any_user),
+    user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
 ):
-    """Soft delete user by ID."""
+    """Soft delete user by ID (admin only)."""
+    require_admin(user_account_type)
     try:
         user_uuid = UUID(user_id)
         user_service.delete_user(user_uuid)
@@ -154,10 +162,11 @@ async def delete_user(
 @router.patch("/{user_id}/activate", response_model=UserResponse)
 async def activate_user(
     user_id: str,
-    current_user_id: str = Depends(require_any_user),
+    user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
 ):
-    """Activate user by ID."""
+    """Activate user by ID (admin only)."""
+    require_admin(user_account_type)
     try:
         user_uuid = UUID(user_id)
         return user_service.activate_user(user_uuid)
@@ -172,10 +181,11 @@ async def activate_user(
 @router.patch("/{user_id}/deactivate", response_model=UserResponse)
 async def deactivate_user(
     user_id: str,
-    current_user_id: str = Depends(require_any_user),
+    user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
 ):
-    """Deactivate user by ID."""
+    """Deactivate user by ID (admin only)."""
+    require_admin(user_account_type)
     try:
         user_uuid = UUID(user_id)
         return user_service.deactivate_user(user_uuid)

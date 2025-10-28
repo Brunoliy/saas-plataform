@@ -13,6 +13,7 @@ class AccountType(str, Enum):
 
     PROFESSIONAL = "professional"
     COMPANY = "company"
+    ADMIN = "admin"
 
 
 class User(BaseModel):
