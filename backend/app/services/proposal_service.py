@@ -1,26 +1,33 @@
 """Proposal service."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
-from app.repositories.proposal_repository import ProposalRepository
-from app.repositories.project_repository import ProjectRepository
-from app.repositories.professional_repository import ProfessionalRepository
-from app.schemas.proposal import ProposalCreate, ProposalUpdate
-from app.models.proposal import Proposal, ProposalStatus
 from app.models.project import ProjectStatus
+from app.models.proposal import Proposal, ProposalStatus
+from app.repositories.professional_repository import ProfessionalRepository
+from app.repositories.project_repository import ProjectRepository
+from app.repositories.proposal_repository import ProposalRepository
+from app.schemas.proposal import ProposalCreate, ProposalUpdate
 
 
 class ProposalService:
     """Proposal service class."""
 
-    def __init__(self, proposal_repository: ProposalRepository, project_repository: ProjectRepository, professional_repository: ProfessionalRepository):
+    def __init__(
+        self,
+        proposal_repository: ProposalRepository,
+        project_repository: ProjectRepository,
+        professional_repository: ProfessionalRepository,
+    ):
         """Initialize service."""
         self.proposal_repository = proposal_repository
         self.project_repository = project_repository
         self.professional_repository = professional_repository
 
-    async def create_proposal(self, professional_id: UUID, proposal_data: ProposalCreate) -> Proposal:
+    async def create_proposal(
+        self, professional_id: UUID, proposal_data: ProposalCreate
+    ) -> Proposal:
         """Create a new proposal."""
         # Verify professional exists
         professional = self.professional_repository.get_by_id(professional_id)
@@ -34,11 +41,15 @@ class ProposalService:
 
         # Verify project is open for proposals
         if project.status != ProjectStatus.OPEN:
-            raise ValueError(f"Project is not open for proposals. Current status: {project.status}")
+            raise ValueError(
+                f"Project is not open for proposals. Current status: {project.status}"
+            )
 
         # Check if professional already submitted a proposal for this project
-        existing_proposal = self.proposal_repository.get_proposal_by_project_and_professional(
-            proposal_data.project_id, professional_id
+        existing_proposal = (
+            self.proposal_repository.get_proposal_by_project_and_professional(
+                proposal_data.project_id, professional_id
+            )
         )
         if existing_proposal:
             raise ValueError("You have already submitted a proposal for this project")
@@ -49,7 +60,9 @@ class ProposalService:
         """Get proposal by ID."""
         return self.proposal_repository.get_by_id(proposal_id)
 
-    async def update_proposal(self, proposal_id: UUID, proposal_data: ProposalUpdate) -> Optional[Proposal]:
+    async def update_proposal(
+        self, proposal_id: UUID, proposal_data: ProposalUpdate
+    ) -> Optional[Proposal]:
         """Update proposal."""
         # Verify proposal exists
         proposal = self.proposal_repository.get_by_id(proposal_id)
@@ -74,7 +87,7 @@ class ProposalService:
 
         return self.proposal_repository.delete(proposal_id)
 
-    async def list_proposals(self, skip: int = 0, limit: int = 20) -> List[Proposal]:
+    async def list_proposals(self, skip: int = 0, limit: int = 20) -> list[Proposal]:
         """List proposals."""
         return self.proposal_repository.list_proposals(skip=skip, limit=limit)
 
@@ -82,17 +95,29 @@ class ProposalService:
         """Count total proposals."""
         return self.proposal_repository.count_proposals()
 
-    async def get_proposals_by_project(self, project_id: UUID, skip: int = 0, limit: int = 20) -> List[Proposal]:
+    async def get_proposals_by_project(
+        self, project_id: UUID, skip: int = 0, limit: int = 20
+    ) -> list[Proposal]:
         """Get proposals by project ID."""
-        return self.proposal_repository.get_proposals_by_project(project_id, skip=skip, limit=limit)
+        return self.proposal_repository.get_proposals_by_project(
+            project_id, skip=skip, limit=limit
+        )
 
-    async def get_proposals_by_professional(self, professional_id: UUID, skip: int = 0, limit: int = 20) -> List[Proposal]:
+    async def get_proposals_by_professional(
+        self, professional_id: UUID, skip: int = 0, limit: int = 20
+    ) -> list[Proposal]:
         """Get proposals by professional ID."""
-        return self.proposal_repository.get_proposals_by_professional(professional_id, skip=skip, limit=limit)
+        return self.proposal_repository.get_proposals_by_professional(
+            professional_id, skip=skip, limit=limit
+        )
 
-    async def get_proposals_by_status(self, status: ProposalStatus, skip: int = 0, limit: int = 20) -> List[Proposal]:
+    async def get_proposals_by_status(
+        self, status: ProposalStatus, skip: int = 0, limit: int = 20
+    ) -> list[Proposal]:
         """Get proposals by status."""
-        return self.proposal_repository.get_proposals_by_status(status, skip=skip, limit=limit)
+        return self.proposal_repository.get_proposals_by_status(
+            status, skip=skip, limit=limit
+        )
 
     async def accept_proposal(self, proposal_id: UUID) -> Optional[Proposal]:
         """Accept a proposal and assign professional to project."""
@@ -117,12 +142,19 @@ class ProposalService:
         accepted_proposal = self.proposal_repository.accept_proposal(proposal_id)
 
         # Assign professional to project
-        self.project_repository.assign_professional(proposal.project_id, proposal.professional_id)
+        self.project_repository.assign_professional(
+            proposal.project_id, proposal.professional_id
+        )
 
         # Reject all other proposals for this project
-        all_proposals = self.proposal_repository.get_proposals_by_project(proposal.project_id)
+        all_proposals = self.proposal_repository.get_proposals_by_project(
+            proposal.project_id
+        )
         for other_proposal in all_proposals:
-            if other_proposal.id != proposal_id and other_proposal.status == ProposalStatus.SUBMITTED:
+            if (
+                other_proposal.id != proposal_id
+                and other_proposal.status == ProposalStatus.SUBMITTED
+            ):
                 self.proposal_repository.reject_proposal(other_proposal.id)
 
         return accepted_proposal
@@ -140,6 +172,8 @@ class ProposalService:
 
         return self.proposal_repository.reject_proposal(proposal_id)
 
-    async def update_ai_score(self, proposal_id: UUID, ai_score: float) -> Optional[Proposal]:
+    async def update_ai_score(
+        self, proposal_id: UUID, ai_score: float
+    ) -> Optional[Proposal]:
         """Update proposal AI score."""
         return self.proposal_repository.update_ai_score(proposal_id, ai_score)

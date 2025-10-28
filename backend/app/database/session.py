@@ -1,9 +1,9 @@
 """Database session management."""
 
-from typing import Generator
+from collections.abc import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import settings
@@ -42,4 +42,4 @@ def create_tables() -> None:
 
 def drop_tables() -> None:
     """Drop all tables."""
-    Base.metadata.drop_all(bind=engine) 
+    Base.metadata.drop_all(bind=engine)

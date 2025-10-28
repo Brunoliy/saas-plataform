@@ -3,24 +3,23 @@
 import logging
 import sys
 import uuid
-from typing import Any, Dict
+from typing import Any
 
 import structlog
-from structlog.types import Processor
 
 from app.core.config import settings
 
 
 def setup_logging() -> None:
     """Setup structured logging configuration."""
-    
+
     # Configure standard library logging
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=getattr(logging, settings.log_level.upper()),
     )
-    
+
     # Configure structlog
     structlog.configure(
         processors=[
@@ -32,7 +31,9 @@ def setup_logging() -> None:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer() if settings.log_format == "json" else structlog.dev.ConsoleRenderer(),
+            structlog.processors.JSONRenderer()
+            if settings.log_format == "json"
+            else structlog.dev.ConsoleRenderer(),
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -46,7 +47,9 @@ def get_logger(name: str) -> structlog.BoundLogger:
     return structlog.get_logger(name)
 
 
-def add_correlation_id(logger: structlog.BoundLogger, correlation_id: str) -> structlog.BoundLogger:
+def add_correlation_id(
+    logger: structlog.BoundLogger, correlation_id: str
+) -> structlog.BoundLogger:
     """Add correlation ID to logger context."""
     return logger.bind(correlation_id=correlation_id)
 
@@ -58,24 +61,30 @@ def get_correlation_id() -> str:
 
 class CorrelationIdMiddleware:
     """Middleware to add correlation ID to request context."""
-    
+
     def __init__(self, app):
         self.app = app
-    
+
     async def __call__(self, scope, receive, send):
         """Add correlation ID to request scope."""
         correlation_id = get_correlation_id()
         scope["correlation_id"] = correlation_id
-        
+
         # Add correlation ID to logger context
         logger = get_logger("http")
         logger = add_correlation_id(logger, correlation_id)
         scope["logger"] = logger
-        
+
         await self.app(scope, receive, send)
 
 
-def log_request(logger: structlog.BoundLogger, method: str, path: str, status_code: int, duration: float) -> None:
+def log_request(
+    logger: structlog.BoundLogger,
+    method: str,
+    path: str,
+    status_code: int,
+    duration: float,
+) -> None:
     """Log HTTP request details."""
     logger.info(
         "HTTP request",
@@ -86,7 +95,9 @@ def log_request(logger: structlog.BoundLogger, method: str, path: str, status_co
     )
 
 
-def log_error(logger: structlog.BoundLogger, error: Exception, context: Dict[str, Any] = None) -> None:
+def log_error(
+    logger: structlog.BoundLogger, error: Exception, context: dict[str, Any] = None
+) -> None:
     """Log error with context."""
     logger.error(
         "Application error",
@@ -97,7 +108,9 @@ def log_error(logger: structlog.BoundLogger, error: Exception, context: Dict[str
     )
 
 
-def log_database_operation(logger: structlog.BoundLogger, operation: str, table: str, duration: float) -> None:
+def log_database_operation(
+    logger: structlog.BoundLogger, operation: str, table: str, duration: float
+) -> None:
     """Log database operation."""
     logger.info(
         "Database operation",
@@ -123,4 +136,4 @@ def log_external_service_call(
         method=method,
         status_code=status_code,
         duration_ms=round(duration * 1000, 2),
-    ) 
+    )

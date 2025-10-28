@@ -1,12 +1,16 @@
 """Professional repository for database operations."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
-from sqlalchemy.orm import Session
+
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 from app.models.professional import ProfessionalProfile, ProfessionalSkill
-from app.schemas.professional import ProfessionalProfileCreate, ProfessionalProfileUpdate
+from app.schemas.professional import (
+    ProfessionalProfileCreate,
+    ProfessionalProfileUpdate,
+)
 
 
 class ProfessionalRepository:
@@ -16,7 +20,9 @@ class ProfessionalRepository:
         """Initialize repository."""
         self.db = db
 
-    def create(self, user_id: UUID, profile_data: ProfessionalProfileCreate) -> ProfessionalProfile:
+    def create(
+        self, user_id: UUID, profile_data: ProfessionalProfileCreate
+    ) -> ProfessionalProfile:
         """Create a new professional profile."""
         db_profile = ProfessionalProfile(
             user_id=user_id,
@@ -24,7 +30,7 @@ class ProfessionalRepository:
             description=profile_data.description,
             hourly_rate=profile_data.hourly_rate,
             average_rating=None,
-            total_reviews=0
+            total_reviews=0,
         )
 
         self.db.add(db_profile)
@@ -34,17 +40,33 @@ class ProfessionalRepository:
 
     def get_by_id(self, profile_id: UUID) -> Optional[ProfessionalProfile]:
         """Get professional profile by ID (only non-deleted profiles)."""
-        return self.db.query(ProfessionalProfile).filter(
-            and_(ProfessionalProfile.id == profile_id, ProfessionalProfile.deleted_at.is_(None))
-        ).first()
+        return (
+            self.db.query(ProfessionalProfile)
+            .filter(
+                and_(
+                    ProfessionalProfile.id == profile_id,
+                    ProfessionalProfile.deleted_at.is_(None),
+                )
+            )
+            .first()
+        )
 
     def get_by_user_id(self, user_id: UUID) -> Optional[ProfessionalProfile]:
         """Get professional profile by user ID (only non-deleted profiles)."""
-        return self.db.query(ProfessionalProfile).filter(
-            and_(ProfessionalProfile.user_id == user_id, ProfessionalProfile.deleted_at.is_(None))
-        ).first()
+        return (
+            self.db.query(ProfessionalProfile)
+            .filter(
+                and_(
+                    ProfessionalProfile.user_id == user_id,
+                    ProfessionalProfile.deleted_at.is_(None),
+                )
+            )
+            .first()
+        )
 
-    def update(self, profile_id: UUID, profile_data: ProfessionalProfileUpdate) -> Optional[ProfessionalProfile]:
+    def update(
+        self, profile_id: UUID, profile_data: ProfessionalProfileUpdate
+    ) -> Optional[ProfessionalProfile]:
         """Update professional profile."""
         db_profile = self.get_by_id(profile_id)
         if not db_profile:
@@ -68,7 +90,9 @@ class ProfessionalRepository:
         self.db.commit()
         return True
 
-    def list_professionals(self, skip: int = 0, limit: int = 20, include_deleted: bool = False) -> List[ProfessionalProfile]:
+    def list_professionals(
+        self, skip: int = 0, limit: int = 20, include_deleted: bool = False
+    ) -> list[ProfessionalProfile]:
         """List professional profiles with pagination."""
         query = self.db.query(ProfessionalProfile)
 
@@ -86,7 +110,9 @@ class ProfessionalRepository:
 
         return query.count()
 
-    def update_rating(self, profile_id: UUID, average_rating: float, total_reviews: int) -> Optional[ProfessionalProfile]:
+    def update_rating(
+        self, profile_id: UUID, average_rating: float, total_reviews: int
+    ) -> Optional[ProfessionalProfile]:
         """Update professional rating."""
         db_profile = self.get_by_id(profile_id)
         if not db_profile:
@@ -98,15 +124,21 @@ class ProfessionalRepository:
         self.db.refresh(db_profile)
         return db_profile
 
-    def add_skill(self, professional_id: UUID, skill_id: UUID, proficiency_level: int,
-                  years_experience: Optional[int] = None, certified: bool = False) -> Optional[ProfessionalSkill]:
+    def add_skill(
+        self,
+        professional_id: UUID,
+        skill_id: UUID,
+        proficiency_level: int,
+        years_experience: Optional[int] = None,
+        certified: bool = False,
+    ) -> Optional[ProfessionalSkill]:
         """Add a skill to professional profile."""
         db_skill = ProfessionalSkill(
             professional_id=professional_id,
             skill_id=skill_id,
             proficiency_level=proficiency_level,
             years_experience=years_experience,
-            certified=1 if certified else 0
+            certified=1 if certified else 0,
         )
 
         self.db.add(db_skill)
@@ -116,13 +148,17 @@ class ProfessionalRepository:
 
     def remove_skill(self, professional_id: UUID, skill_id: UUID) -> bool:
         """Remove a skill from professional profile."""
-        db_skill = self.db.query(ProfessionalSkill).filter(
-            and_(
-                ProfessionalSkill.professional_id == professional_id,
-                ProfessionalSkill.skill_id == skill_id,
-                ProfessionalSkill.deleted_at.is_(None)
+        db_skill = (
+            self.db.query(ProfessionalSkill)
+            .filter(
+                and_(
+                    ProfessionalSkill.professional_id == professional_id,
+                    ProfessionalSkill.skill_id == skill_id,
+                    ProfessionalSkill.deleted_at.is_(None),
+                )
             )
-        ).first()
+            .first()
+        )
 
         if not db_skill:
             return False
@@ -131,11 +167,15 @@ class ProfessionalRepository:
         self.db.commit()
         return True
 
-    def get_professional_skills(self, professional_id: UUID) -> List[ProfessionalSkill]:
+    def get_professional_skills(self, professional_id: UUID) -> list[ProfessionalSkill]:
         """Get all skills for a professional."""
-        return self.db.query(ProfessionalSkill).filter(
-            and_(
-                ProfessionalSkill.professional_id == professional_id,
-                ProfessionalSkill.deleted_at.is_(None)
+        return (
+            self.db.query(ProfessionalSkill)
+            .filter(
+                and_(
+                    ProfessionalSkill.professional_id == professional_id,
+                    ProfessionalSkill.deleted_at.is_(None),
+                )
             )
-        ).all()
+            .all()
+        )

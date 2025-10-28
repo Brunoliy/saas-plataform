@@ -1,20 +1,24 @@
 """Authentication service."""
 
-from typing import Optional
-from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate
-from app.schemas.auth import Token, UserLogin
-from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
 from app.core.exceptions import AuthenticationError
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    get_password_hash,
+    verify_password,
+)
+from app.repositories.user_repository import UserRepository
+from app.schemas.auth import Token, UserLogin
+from app.schemas.user import UserCreate
 
 
 class AuthService:
     """Authentication service class."""
-    
+
     def __init__(self, user_repository: UserRepository):
         """Initialize service."""
         self.user_repository = user_repository
-    
+
     async def register(self, user_data: UserCreate) -> Token:
         """Register a new user."""
         # Check if user already exists
@@ -27,16 +31,22 @@ class AuthService:
         user = self.user_repository.create(user_data)
 
         # Create tokens
-        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value if hasattr(user.account_type, 'value') else user.account_type}
+        token_data = {
+            "sub": str(user.id),
+            "email": user.email,
+            "account_type": user.account_type.value
+            if hasattr(user.account_type, "value")
+            else user.account_type,
+        }
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
 
         return Token(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=30*60  # 30 minutes
+            expires_in=30 * 60,  # 30 minutes
         )
-    
+
     async def login(self, credentials: UserLogin) -> Token:
         """Login user."""
         user = self.user_repository.get_by_email(credentials.email)
@@ -47,14 +57,20 @@ class AuthService:
             raise AuthenticationError("Account is disabled")
 
         # Create tokens
-        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value if hasattr(user.account_type, 'value') else user.account_type}
+        token_data = {
+            "sub": str(user.id),
+            "email": user.email,
+            "account_type": user.account_type.value
+            if hasattr(user.account_type, "value")
+            else user.account_type,
+        }
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
 
         return Token(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=30*60  # 30 minutes
+            expires_in=30 * 60,  # 30 minutes
         )
 
     async def refresh_token(self, refresh_token: str) -> Token:
@@ -73,12 +89,18 @@ class AuthService:
             raise AuthenticationError("Account is disabled")
 
         # Create new tokens
-        new_token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value if hasattr(user.account_type, 'value') else user.account_type}
+        new_token_data = {
+            "sub": str(user.id),
+            "email": user.email,
+            "account_type": user.account_type.value
+            if hasattr(user.account_type, "value")
+            else user.account_type,
+        }
         access_token = create_access_token(data=new_token_data)
         new_refresh_token = create_refresh_token(data=new_token_data)
 
         return Token(
             access_token=access_token,
             refresh_token=new_refresh_token,
-            expires_in=30*60  # 30 minutes
+            expires_in=30 * 60,  # 30 minutes
         )

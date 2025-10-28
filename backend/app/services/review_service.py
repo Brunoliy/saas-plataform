@@ -1,16 +1,16 @@
 """Review service."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
-from app.repositories.review_repository import ReviewRepository
-from app.repositories.project_repository import ProjectRepository
-from app.repositories.user_repository import UserRepository
-from app.repositories.professional_repository import ProfessionalRepository
-from app.repositories.client_repository import ClientRepository
-from app.schemas.review import ReviewCreate, ReviewUpdate
-from app.models.review import Review, ReviewType
 from app.models.project import ProjectStatus
+from app.models.review import Review, ReviewType
+from app.repositories.client_repository import ClientRepository
+from app.repositories.professional_repository import ProfessionalRepository
+from app.repositories.project_repository import ProjectRepository
+from app.repositories.review_repository import ReviewRepository
+from app.repositories.user_repository import UserRepository
+from app.schemas.review import ReviewCreate, ReviewUpdate
 
 
 class ReviewService:
@@ -22,7 +22,7 @@ class ReviewService:
         project_repository: ProjectRepository,
         user_repository: UserRepository,
         professional_repository: ProfessionalRepository = None,
-        client_repository: ClientRepository = None
+        client_repository: ClientRepository = None,
     ):
         """Initialize service."""
         self.review_repository = review_repository
@@ -31,7 +31,9 @@ class ReviewService:
         self.professional_repository = professional_repository
         self.client_repository = client_repository
 
-    async def create_review(self, reviewer_id: UUID, review_data: ReviewCreate) -> Review:
+    async def create_review(
+        self, reviewer_id: UUID, review_data: ReviewCreate
+    ) -> Review:
         """Create a new review."""
         # Verify reviewer exists
         reviewer = self.user_repository.get_by_id(reviewer_id)
@@ -50,10 +52,15 @@ class ReviewService:
 
         # Verify project is completed
         if project.status != ProjectStatus.COMPLETED:
-            raise ValueError(f"Cannot review project that is not completed. Current status: {project.status}")
+            raise ValueError(
+                f"Cannot review project that is not completed. Current status: {project.status}"
+            )
 
         # Verify reviewer is part of the project
-        if reviewer_id != project.client_id and reviewer_id != project.selected_professional_id:
+        if (
+            reviewer_id != project.client_id
+            and reviewer_id != project.selected_professional_id
+        ):
             raise ValueError("You can only review projects you are part of")
 
         # Verify reviewer hasn't already reviewed this project
@@ -68,7 +75,9 @@ class ReviewService:
             if reviewer_id != project.client_id:
                 raise ValueError("Only the client can review the professional")
             if review_data.reviewed_id != project.selected_professional_id:
-                raise ValueError("You can only review the professional assigned to this project")
+                raise ValueError(
+                    "You can only review the professional assigned to this project"
+                )
         elif review_data.review_type == ReviewType.PROFESSIONAL_TO_CLIENT:
             if reviewer_id != project.selected_professional_id:
                 raise ValueError("Only the professional can review the client")
@@ -95,18 +104,24 @@ class ReviewService:
         if self.professional_repository:
             professional = self.professional_repository.get_by_user_id(user_id)
             if professional:
-                self.professional_repository.update_rating(professional.id, average_rating, total_reviews)
+                self.professional_repository.update_rating(
+                    professional.id, average_rating, total_reviews
+                )
 
         if self.client_repository:
             client = self.client_repository.get_by_user_id(user_id)
             if client:
-                self.client_repository.update_rating(client.id, average_rating, total_reviews)
+                self.client_repository.update_rating(
+                    client.id, average_rating, total_reviews
+                )
 
     async def get_review_by_id(self, review_id: UUID) -> Optional[Review]:
         """Get review by ID."""
         return self.review_repository.get_by_id(review_id)
 
-    async def update_review(self, review_id: UUID, review_data: ReviewUpdate) -> Optional[Review]:
+    async def update_review(
+        self, review_id: UUID, review_data: ReviewUpdate
+    ) -> Optional[Review]:
         """Update review."""
         review = self.review_repository.update(review_id, review_data)
 
@@ -130,7 +145,7 @@ class ReviewService:
 
         return deleted
 
-    async def list_reviews(self, skip: int = 0, limit: int = 20) -> List[Review]:
+    async def list_reviews(self, skip: int = 0, limit: int = 20) -> list[Review]:
         """List reviews."""
         return self.review_repository.list_reviews(skip=skip, limit=limit)
 
@@ -138,21 +153,37 @@ class ReviewService:
         """Count total reviews."""
         return self.review_repository.count_reviews()
 
-    async def get_reviews_by_project(self, project_id: UUID, skip: int = 0, limit: int = 20) -> List[Review]:
+    async def get_reviews_by_project(
+        self, project_id: UUID, skip: int = 0, limit: int = 20
+    ) -> list[Review]:
         """Get reviews by project ID."""
-        return self.review_repository.get_reviews_by_project(project_id, skip=skip, limit=limit)
+        return self.review_repository.get_reviews_by_project(
+            project_id, skip=skip, limit=limit
+        )
 
-    async def get_reviews_by_reviewer(self, reviewer_id: UUID, skip: int = 0, limit: int = 20) -> List[Review]:
+    async def get_reviews_by_reviewer(
+        self, reviewer_id: UUID, skip: int = 0, limit: int = 20
+    ) -> list[Review]:
         """Get reviews by reviewer ID."""
-        return self.review_repository.get_reviews_by_reviewer(reviewer_id, skip=skip, limit=limit)
+        return self.review_repository.get_reviews_by_reviewer(
+            reviewer_id, skip=skip, limit=limit
+        )
 
-    async def get_reviews_by_reviewed(self, reviewed_id: UUID, skip: int = 0, limit: int = 20) -> List[Review]:
+    async def get_reviews_by_reviewed(
+        self, reviewed_id: UUID, skip: int = 0, limit: int = 20
+    ) -> list[Review]:
         """Get reviews by reviewed user ID."""
-        return self.review_repository.get_reviews_by_reviewed(reviewed_id, skip=skip, limit=limit)
+        return self.review_repository.get_reviews_by_reviewed(
+            reviewed_id, skip=skip, limit=limit
+        )
 
-    async def get_reviews_by_type(self, review_type: ReviewType, skip: int = 0, limit: int = 20) -> List[Review]:
+    async def get_reviews_by_type(
+        self, review_type: ReviewType, skip: int = 0, limit: int = 20
+    ) -> list[Review]:
         """Get reviews by type."""
-        return self.review_repository.get_reviews_by_type(review_type, skip=skip, limit=limit)
+        return self.review_repository.get_reviews_by_type(
+            review_type, skip=skip, limit=limit
+        )
 
     async def get_average_rating_for_user(self, user_id: UUID) -> Optional[float]:
         """Get average rating for a user."""

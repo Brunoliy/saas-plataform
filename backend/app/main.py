@@ -2,20 +2,30 @@
 
 import time
 from contextlib import asynccontextmanager
-from typing import Any
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from structlog import get_logger
 
+from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.container import container
-from app.core.exceptions import SaaSPlatformException, AuthenticationError, AuthorizationError, NotFoundError, ConflictError
-from app.core.logging import setup_logging, CorrelationIdMiddleware, log_request, log_error
+from app.core.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+    ConflictError,
+    NotFoundError,
+    SaaSPlatformException,
+)
+from app.core.logging import (
+    CorrelationIdMiddleware,
+    log_error,
+    log_request,
+    setup_logging,
+)
 from app.core.sentry import init_sentry
-from app.api.v1.router import api_router
 
 
 @asynccontextmanager
@@ -26,22 +36,24 @@ async def lifespan(app: FastAPI):
     init_sentry()  # Initialize Sentry for error tracking
     logger = get_logger("app")
     logger.info("Starting SaaS Platform API")
-    
+
     # Initialize container
     container.config.from_dict(settings.model_dump())
-    container.wire(modules=[
-        "app.api.v1.endpoints.auth",
-        "app.api.v1.endpoints.users",
-        "app.api.v1.endpoints.professionals",
-        "app.api.v1.endpoints.clients",
-        "app.api.v1.endpoints.projects",
-        "app.api.v1.endpoints.proposals",
-        "app.api.v1.endpoints.reviews",
-        "app.api.v1.endpoints.skills",
-    ])
-    
+    container.wire(
+        modules=[
+            "app.api.v1.endpoints.auth",
+            "app.api.v1.endpoints.users",
+            "app.api.v1.endpoints.professionals",
+            "app.api.v1.endpoints.clients",
+            "app.api.v1.endpoints.projects",
+            "app.api.v1.endpoints.proposals",
+            "app.api.v1.endpoints.reviews",
+            "app.api.v1.endpoints.skills",
+        ]
+    )
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down SaaS Platform API")
 
@@ -76,19 +88,19 @@ app.add_middleware(
 async def add_process_time_header(request: Request, call_next):
     """Add processing time header to response."""
     start_time = time.time()
-    
+
     # Get correlation ID from request scope
     correlation_id = request.scope.get("correlation_id", "unknown")
     logger = get_logger("http").bind(correlation_id=correlation_id)
-    
+
     # Process request
     response = await call_next(request)
-    
+
     # Calculate processing time
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     response.headers["X-Correlation-ID"] = correlation_id
-    
+
     # Log request
     log_request(
         logger=logger,
@@ -97,7 +109,7 @@ async def add_process_time_header(request: Request, call_next):
         status_code=response.status_code,
         duration=process_time,
     )
-    
+
     return response
 
 
@@ -186,7 +198,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
-    
+
     return JSONResponse(
         status_code=500,
         content={
@@ -220,11 +232,11 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
         port=8000,
         reload=settings.debug,
         log_level=settings.log_level.lower(),
-    ) 
+    )

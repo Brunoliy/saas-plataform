@@ -1,9 +1,10 @@
 """User repository for database operations."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
-from sqlalchemy.orm import Session
+
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -24,7 +25,7 @@ class UserRepository:
             full_name=user_data.full_name,
             phone=user_data.phone,
             account_type=user_data.account_type,
-            active=True
+            active=True,
         )
 
         self.db.add(db_user)
@@ -34,15 +35,19 @@ class UserRepository:
 
     def get_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by ID (only non-deleted users)."""
-        return self.db.query(User).filter(
-            and_(User.id == user_id, User.deleted_at.is_(None))
-        ).first()
+        return (
+            self.db.query(User)
+            .filter(and_(User.id == user_id, User.deleted_at.is_(None)))
+            .first()
+        )
 
     def get_by_email(self, email: str) -> Optional[User]:
         """Get user by email (only non-deleted users)."""
-        return self.db.query(User).filter(
-            and_(User.email == email, User.deleted_at.is_(None))
-        ).first()
+        return (
+            self.db.query(User)
+            .filter(and_(User.email == email, User.deleted_at.is_(None)))
+            .first()
+        )
 
     def update(self, user_id: UUID, user_data: UserUpdate) -> Optional[User]:
         """Update user."""
@@ -68,7 +73,9 @@ class UserRepository:
         self.db.commit()
         return True
 
-    def list_users(self, skip: int = 0, limit: int = 20, include_deleted: bool = False) -> List[User]:
+    def list_users(
+        self, skip: int = 0, limit: int = 20, include_deleted: bool = False
+    ) -> list[User]:
         """List users with pagination."""
         query = self.db.query(User)
 

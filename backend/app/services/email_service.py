@@ -1,7 +1,8 @@
 """Email Service using Resend API."""
 
+from typing import Optional
+
 import resend
-from typing import List, Optional
 
 from app.core.config import settings
 from app.core.exceptions import SaaSPlatformException
@@ -15,14 +16,14 @@ class EmailService:
         if not settings.resend_api_key:
             raise SaaSPlatformException(
                 message="Resend API key not configured",
-                error_code="EMAIL_NOT_CONFIGURED"
+                error_code="EMAIL_NOT_CONFIGURED",
             )
 
         resend.api_key = settings.resend_api_key
 
     def send_email(
         self,
-        to: List[str],
+        to: list[str],
         subject: str,
         html: str,
         from_email: Optional[str] = None,
@@ -44,22 +45,21 @@ class EmailService:
         try:
             sender = f"{from_name or settings.from_name} <{from_email or settings.from_email}>"
 
-            response = resend.Emails.send({
-                "from": sender,
-                "to": to,
-                "subject": subject,
-                "html": html,
-            })
+            response = resend.Emails.send(
+                {
+                    "from": sender,
+                    "to": to,
+                    "subject": subject,
+                    "html": html,
+                }
+            )
 
-            return {
-                "email_id": response.get("id"),
-                "status": "sent"
-            }
+            return {"email_id": response.get("id"), "status": "sent"}
 
         except Exception as e:
             raise SaaSPlatformException(
                 message=f"Failed to send email: {str(e)}",
-                error_code="EMAIL_SEND_FAILED"
+                error_code="EMAIL_SEND_FAILED",
             )
 
     def send_welcome_email(self, to_email: str, user_name: str) -> dict:
@@ -91,9 +91,7 @@ class EmailService:
         """
 
         return self.send_email(
-            to=[to_email],
-            subject="Bem-vindo ao SaaS Platform!",
-            html=html
+            to=[to_email], subject="Bem-vindo ao SaaS Platform!", html=html
         )
 
     def send_proposal_notification(
@@ -101,7 +99,7 @@ class EmailService:
         to_email: str,
         client_name: str,
         project_title: str,
-        professional_name: str
+        professional_name: str,
     ) -> dict:
         """Send notification when a new proposal is received."""
         html = f"""
@@ -126,9 +124,7 @@ class EmailService:
         """
 
         return self.send_email(
-            to=[to_email],
-            subject=f"Nova proposta para: {project_title}",
-            html=html
+            to=[to_email], subject=f"Nova proposta para: {project_title}", html=html
         )
 
     def send_proposal_accepted_notification(
@@ -136,7 +132,7 @@ class EmailService:
         to_email: str,
         professional_name: str,
         project_title: str,
-        client_name: str
+        client_name: str,
     ) -> dict:
         """Send notification when a proposal is accepted."""
         html = f"""
@@ -162,16 +158,11 @@ class EmailService:
         """
 
         return self.send_email(
-            to=[to_email],
-            subject=f"Proposta aceita: {project_title}",
-            html=html
+            to=[to_email], subject=f"Proposta aceita: {project_title}", html=html
         )
 
     def send_project_completed_notification(
-        self,
-        to_email: str,
-        recipient_name: str,
-        project_title: str
+        self, to_email: str, recipient_name: str, project_title: str
     ) -> dict:
         """Send notification when a project is completed."""
         html = f"""
@@ -196,7 +187,5 @@ class EmailService:
         """
 
         return self.send_email(
-            to=[to_email],
-            subject=f"Projeto concluído: {project_title}",
-            html=html
+            to=[to_email], subject=f"Projeto concluído: {project_title}", html=html
         )

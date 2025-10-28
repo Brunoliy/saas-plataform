@@ -1,17 +1,16 @@
 """AI Recommendations endpoints."""
 
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.database.session import get_db
-from app.services.ai_service import AIService
-from app.repositories.ai_repository import AIRepository
-from app.repositories.project_repository import ProjectRepository
-from app.repositories.professional_repository import ProfessionalRepository
 from app.core.security import get_current_user_id
+from app.database.session import get_db
+from app.repositories.ai_repository import AIRepository
+from app.repositories.professional_repository import ProfessionalRepository
+from app.repositories.project_repository import ProjectRepository
+from app.services.ai_service import AIService
 
 router = APIRouter()
 
@@ -37,15 +36,14 @@ async def get_professional_recommendations_for_project(
     """
     try:
         recommendations = ai_service.recommend_professionals_for_project(
-            project_id=project_id,
-            limit=limit
+            project_id=project_id, limit=limit
         )
 
         if not recommendations:
             return {
                 "project_id": str(project_id),
                 "recommendations": [],
-                "message": "No professionals found matching this project requirements"
+                "message": "No professionals found matching this project requirements",
             }
 
         return {
@@ -57,12 +55,14 @@ async def get_professional_recommendations_for_project(
                     "compatibility_score": rec["compatibility_score"],
                     "recommendation": rec.get("recommendation", ""),
                     "skills_match": rec.get("skills_match", []),
-                    "average_rating": float(rec.get("average_rating", 0)) if rec.get("average_rating") else None,
+                    "average_rating": float(rec.get("average_rating", 0))
+                    if rec.get("average_rating")
+                    else None,
                     "total_reviews": rec.get("total_reviews", 0),
                 }
                 for rec in recommendations
             ],
-            "total": len(recommendations)
+            "total": len(recommendations),
         }
 
     except Exception as e:
@@ -82,15 +82,14 @@ async def get_project_recommendations_for_professional(
     """
     try:
         recommendations = ai_service.recommend_projects_for_professional(
-            professional_id=professional_id,
-            limit=limit
+            professional_id=professional_id, limit=limit
         )
 
         if not recommendations:
             return {
                 "professional_id": str(professional_id),
                 "recommendations": [],
-                "message": "No open projects found matching your skills"
+                "message": "No open projects found matching your skills",
             }
 
         return {
@@ -102,12 +101,14 @@ async def get_project_recommendations_for_professional(
                     "compatibility_score": rec["compatibility_score"],
                     "recommendation": rec.get("recommendation", ""),
                     "skills_match": rec.get("skills_match", []),
-                    "budget": float(rec.get("budget", 0)) if rec.get("budget") else None,
+                    "budget": float(rec.get("budget", 0))
+                    if rec.get("budget")
+                    else None,
                     "deadline": rec.get("deadline"),
                 }
                 for rec in recommendations
             ],
-            "total": len(recommendations)
+            "total": len(recommendations),
         }
 
     except Exception as e:
@@ -127,14 +128,12 @@ async def calculate_compatibility(
     """
     try:
         result = ai_service.calculate_compatibility_score(
-            project_id=project_id,
-            professional_id=professional_id
+            project_id=project_id, professional_id=professional_id
         )
 
         if not result:
             raise HTTPException(
-                status_code=404,
-                detail="Project or professional not found"
+                status_code=404, detail="Project or professional not found"
             )
 
         return {
@@ -171,12 +170,11 @@ async def get_my_recommended_projects(
         if not professional:
             raise HTTPException(
                 status_code=404,
-                detail="Professional profile not found. Please create a professional profile first."
+                detail="Professional profile not found. Please create a professional profile first.",
             )
 
         recommendations = ai_service.recommend_projects_for_professional(
-            professional_id=professional.id,
-            limit=limit
+            professional_id=professional.id, limit=limit
         )
 
         return {
@@ -187,12 +185,14 @@ async def get_my_recommended_projects(
                     "compatibility_score": rec["compatibility_score"],
                     "recommendation": rec.get("recommendation", ""),
                     "skills_match": rec.get("skills_match", []),
-                    "budget": float(rec.get("budget", 0)) if rec.get("budget") else None,
+                    "budget": float(rec.get("budget", 0))
+                    if rec.get("budget")
+                    else None,
                     "deadline": rec.get("deadline"),
                 }
                 for rec in recommendations
             ],
-            "total": len(recommendations)
+            "total": len(recommendations),
         }
 
     except HTTPException:
@@ -215,10 +215,14 @@ async def get_analysis(
     return {
         "id": str(analysis.id),
         "project_id": str(analysis.project_id) if analysis.project_id else None,
-        "professional_id": str(analysis.professional_id) if analysis.professional_id else None,
+        "professional_id": str(analysis.professional_id)
+        if analysis.professional_id
+        else None,
         "analysis_type": analysis.analysis_type,
         "result_data": analysis.result_data,
-        "confidence_score": float(analysis.confidence_score) if analysis.confidence_score else None,
+        "confidence_score": float(analysis.confidence_score)
+        if analysis.confidence_score
+        else None,
         "model_version": analysis.model_version,
         "created_at": analysis.created_at,
     }

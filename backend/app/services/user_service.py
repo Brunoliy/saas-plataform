@@ -1,12 +1,11 @@
 """User service."""
 
-from typing import Optional, List, Tuple
+from typing import Optional
 from uuid import UUID
 
-from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate, UserUpdate, UserResponse
-from app.models.user import User
 from app.core.exceptions import ConflictError, NotFoundError
+from app.repositories.user_repository import UserRepository
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 
 class UserService:
@@ -59,7 +58,9 @@ class UserService:
 
         return success
 
-    def list_users(self, skip: int = 0, limit: int = 20) -> Tuple[List[UserResponse], int]:
+    def list_users(
+        self, skip: int = 0, limit: int = 20
+    ) -> tuple[list[UserResponse], int]:
         """List users with pagination."""
         users = self.user_repository.list_users(skip=skip, limit=limit)
         total = self.user_repository.count_users()
