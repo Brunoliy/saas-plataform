@@ -3,12 +3,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.schemas.auth import Token, UserLogin, RefreshToken
-from app.schemas.user import UserCreate
-from app.core.exceptions import AuthenticationError, ConflictError
+from app.core.exceptions import AuthenticationError
 from app.database.session import get_db
-from app.services.auth_service import AuthService
 from app.repositories.user_repository import UserRepository
+from app.schemas.auth import RefreshToken, Token, UserLogin
+from app.schemas.user import UserCreate
+from app.services.auth_service import AuthService
 
 router = APIRouter()
 
@@ -21,8 +21,7 @@ def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register(
-    user_data: UserCreate,
-    auth_service: AuthService = Depends(get_auth_service)
+    user_data: UserCreate, auth_service: AuthService = Depends(get_auth_service)
 ):
     """Register a new user."""
     try:
@@ -35,8 +34,7 @@ async def register(
 
 @router.post("/login", response_model=Token)
 async def login(
-    user_credentials: UserLogin,
-    auth_service: AuthService = Depends(get_auth_service)
+    user_credentials: UserLogin, auth_service: AuthService = Depends(get_auth_service)
 ):
     """Login endpoint."""
     try:
@@ -48,7 +46,7 @@ async def login(
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
     refresh_token_data: RefreshToken,
-    auth_service: AuthService = Depends(get_auth_service)
+    auth_service: AuthService = Depends(get_auth_service),
 ):
     """Refresh access token."""
     try:
@@ -62,4 +60,4 @@ async def logout():
     """Logout endpoint."""
     # Token-based logout is handled client-side by discarding the token
     # For more advanced scenarios, implement token blacklisting here
-    return {"message": "Successfully logged out"} 
+    return {"message": "Successfully logged out"}

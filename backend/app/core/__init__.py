@@ -1,1 +1,1 @@
-"""Core application modules.""" 
+"""Core application modules."""

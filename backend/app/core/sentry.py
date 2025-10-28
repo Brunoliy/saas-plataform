@@ -76,11 +76,13 @@ def set_user(user_id: str, email: str = None, username: str = None):
         email: User email (optional)
         username: Username (optional)
     """
-    sentry_sdk.set_user({
-        "id": user_id,
-        "email": email,
-        "username": username,
-    })
+    sentry_sdk.set_user(
+        {
+            "id": user_id,
+            "email": email,
+            "username": username,
+        }
+    )
 
 
 def set_tag(key: str, value: str):

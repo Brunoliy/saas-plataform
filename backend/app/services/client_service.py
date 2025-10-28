@@ -1,11 +1,11 @@
 """Client service."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
+from app.models.client import ClientProfile
 from app.repositories.client_repository import ClientRepository
 from app.schemas.client import ClientProfileCreate, ClientProfileUpdate
-from app.models.client import ClientProfile
 
 
 class ClientService:
@@ -15,7 +15,9 @@ class ClientService:
         """Initialize service."""
         self.client_repository = client_repository
 
-    async def create_profile(self, user_id: UUID, profile_data: ClientProfileCreate) -> ClientProfile:
+    async def create_profile(
+        self, user_id: UUID, profile_data: ClientProfileCreate
+    ) -> ClientProfile:
         """Create a new client profile."""
         # Check if profile already exists
         existing_profile = self.client_repository.get_by_user_id(user_id)
@@ -33,7 +35,9 @@ class ClientService:
         """Get client profile by user ID."""
         return self.client_repository.get_by_user_id(user_id)
 
-    async def update_profile(self, profile_id: UUID, profile_data: ClientProfileUpdate) -> Optional[ClientProfile]:
+    async def update_profile(
+        self, profile_id: UUID, profile_data: ClientProfileUpdate
+    ) -> Optional[ClientProfile]:
         """Update client profile."""
         return self.client_repository.update(profile_id, profile_data)
 
@@ -41,7 +45,7 @@ class ClientService:
         """Delete client profile."""
         return self.client_repository.delete(profile_id)
 
-    async def list_clients(self, skip: int = 0, limit: int = 20) -> List[ClientProfile]:
+    async def list_clients(self, skip: int = 0, limit: int = 20) -> list[ClientProfile]:
         """List client profiles."""
         return self.client_repository.list_clients(skip=skip, limit=limit)
 
@@ -49,10 +53,18 @@ class ClientService:
         """Count total client profiles."""
         return self.client_repository.count_clients()
 
-    async def get_clients_by_sector(self, business_sector: str, skip: int = 0, limit: int = 20) -> List[ClientProfile]:
+    async def get_clients_by_sector(
+        self, business_sector: str, skip: int = 0, limit: int = 20
+    ) -> list[ClientProfile]:
         """Get clients by business sector."""
-        return self.client_repository.get_clients_by_sector(business_sector, skip=skip, limit=limit)
+        return self.client_repository.get_clients_by_sector(
+            business_sector, skip=skip, limit=limit
+        )
 
-    async def update_rating(self, profile_id: UUID, average_rating: float, total_reviews: int) -> Optional[ClientProfile]:
+    async def update_rating(
+        self, profile_id: UUID, average_rating: float, total_reviews: int
+    ) -> Optional[ClientProfile]:
         """Update client rating."""
-        return self.client_repository.update_rating(profile_id, average_rating, total_reviews)
+        return self.client_repository.update_rating(
+            profile_id, average_rating, total_reviews
+        )

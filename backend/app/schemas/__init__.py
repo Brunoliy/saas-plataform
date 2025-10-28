@@ -1,21 +1,35 @@
 """Pydantic schemas for API requests and responses."""
 
-from app.schemas.user import UserCreate, UserUpdate, UserResponse, UserLogin
 from app.schemas.auth import Token, TokenData
-from app.schemas.common import PaginationParams, PaginatedResponse
+from app.schemas.client import (
+    ClientProfileCreate,
+    ClientProfileResponse,
+    ClientProfileUpdate,
+)
+from app.schemas.common import PaginatedResponse, PaginationParams
 from app.schemas.professional import (
     ProfessionalProfileCreate,
-    ProfessionalProfileUpdate,
     ProfessionalProfileResponse,
+    ProfessionalProfileUpdate,
     ProfessionalSkillCreate,
-    ProfessionalSkillUpdate,
     ProfessionalSkillResponse,
+    ProfessionalSkillUpdate,
 )
-from app.schemas.client import ClientProfileCreate, ClientProfileUpdate, ClientProfileResponse
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse, ProjectStatus
-from app.schemas.proposal import ProposalCreate, ProposalUpdate, ProposalResponse, ProposalStatus
-from app.schemas.skill import SkillCreate, SkillUpdate, SkillResponse
-from app.schemas.review import ReviewCreate, ReviewUpdate, ReviewResponse, ReviewType
+from app.schemas.project import (
+    ProjectCreate,
+    ProjectResponse,
+    ProjectStatus,
+    ProjectUpdate,
+)
+from app.schemas.proposal import (
+    ProposalCreate,
+    ProposalResponse,
+    ProposalStatus,
+    ProposalUpdate,
+)
+from app.schemas.review import ReviewCreate, ReviewResponse, ReviewType, ReviewUpdate
+from app.schemas.skill import SkillCreate, SkillResponse, SkillUpdate
+from app.schemas.user import UserCreate, UserLogin, UserResponse, UserUpdate
 
 __all__ = [
     # User schemas
@@ -59,4 +73,4 @@ __all__ = [
     "ReviewUpdate",
     "ReviewResponse",
     "ReviewType",
-] 
+]

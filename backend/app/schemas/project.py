@@ -1,12 +1,12 @@
 """Project schemas."""
 
+from datetime import datetime
 from decimal import Decimal
+from enum import Enum
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
-from enum import Enum
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectStatus(str, Enum):

@@ -1,11 +1,11 @@
 """Skill service."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
+from app.models.skill import Skill
 from app.repositories.skill_repository import SkillRepository
 from app.schemas.skill import SkillCreate, SkillUpdate
-from app.models.skill import Skill
 
 
 class SkillService:
@@ -32,7 +32,9 @@ class SkillService:
         """Get skill by name."""
         return self.skill_repository.get_by_name(name)
 
-    async def update_skill(self, skill_id: UUID, skill_data: SkillUpdate) -> Optional[Skill]:
+    async def update_skill(
+        self, skill_id: UUID, skill_data: SkillUpdate
+    ) -> Optional[Skill]:
         """Update skill."""
         # If updating name, check for duplicates
         if skill_data.name:
@@ -46,7 +48,7 @@ class SkillService:
         """Delete skill."""
         return self.skill_repository.delete(skill_id)
 
-    async def list_skills(self, skip: int = 0, limit: int = 20) -> List[Skill]:
+    async def list_skills(self, skip: int = 0, limit: int = 20) -> list[Skill]:
         """List skills."""
         return self.skill_repository.list_skills(skip=skip, limit=limit)
 
@@ -54,11 +56,15 @@ class SkillService:
         """Count total skills."""
         return self.skill_repository.count_skills()
 
-    async def get_skills_by_category(self, category: str, skip: int = 0, limit: int = 20) -> List[Skill]:
+    async def get_skills_by_category(
+        self, category: str, skip: int = 0, limit: int = 20
+    ) -> list[Skill]:
         """Get skills by category."""
-        return self.skill_repository.get_skills_by_category(category, skip=skip, limit=limit)
+        return self.skill_repository.get_skills_by_category(
+            category, skip=skip, limit=limit
+        )
 
-    async def get_active_skills(self, skip: int = 0, limit: int = 20) -> List[Skill]:
+    async def get_active_skills(self, skip: int = 0, limit: int = 20) -> list[Skill]:
         """Get active skills."""
         return self.skill_repository.get_active_skills(skip=skip, limit=limit)
 
@@ -78,10 +84,12 @@ class SkillService:
 
         return self.skill_repository.deactivate_skill(skill_id)
 
-    async def get_categories(self) -> List[str]:
+    async def get_categories(self) -> list[str]:
         """Get all unique skill categories."""
         return self.skill_repository.get_categories()
 
-    async def search_skills(self, search_term: str, skip: int = 0, limit: int = 20) -> List[Skill]:
+    async def search_skills(
+        self, search_term: str, skip: int = 0, limit: int = 20
+    ) -> list[Skill]:
         """Search skills by name or description."""
         return self.skill_repository.search_skills(search_term, skip=skip, limit=limit)

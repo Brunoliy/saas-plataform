@@ -1,11 +1,12 @@
 """S3 Storage Service for file uploads."""
 
-import boto3
-from botocore.exceptions import ClientError
-from typing import Optional
+import mimetypes
 import uuid
 from datetime import datetime
-import mimetypes
+from typing import Optional
+
+import boto3
+from botocore.exceptions import ClientError
 
 from app.core.config import settings
 from app.core.exceptions import SaaSPlatformException
@@ -19,11 +20,11 @@ class StorageService:
         if not settings.aws_access_key_id or not settings.aws_secret_access_key:
             raise SaaSPlatformException(
                 message="AWS credentials not configured",
-                error_code="STORAGE_NOT_CONFIGURED"
+                error_code="STORAGE_NOT_CONFIGURED",
             )
 
         self.s3_client = boto3.client(
-            's3',
+            "s3",
             aws_access_key_id=settings.aws_access_key_id,
             aws_secret_access_key=settings.aws_secret_access_key,
             region_name=settings.aws_region,
@@ -35,7 +36,7 @@ class StorageService:
         file_content: bytes,
         filename: str,
         folder: str = "uploads",
-        content_type: Optional[str] = None
+        content_type: Optional[str] = None,
     ) -> dict:
         """
         Upload file to S3.
@@ -51,22 +52,28 @@ class StorageService:
         """
         try:
             # Generate unique filename
-            file_extension = filename.split('.')[-1] if '.' in filename else ''
-            unique_filename = f"{uuid.uuid4()}.{file_extension}" if file_extension else str(uuid.uuid4())
-            file_key = f"{folder}/{datetime.utcnow().strftime('%Y/%m/%d')}/{unique_filename}"
+            file_extension = filename.split(".")[-1] if "." in filename else ""
+            unique_filename = (
+                f"{uuid.uuid4()}.{file_extension}"
+                if file_extension
+                else str(uuid.uuid4())
+            )
+            file_key = (
+                f"{folder}/{datetime.utcnow().strftime('%Y/%m/%d')}/{unique_filename}"
+            )
 
             # Detect content type if not provided
             if not content_type:
                 content_type, _ = mimetypes.guess_type(filename)
                 if not content_type:
-                    content_type = 'application/octet-stream'
+                    content_type = "application/octet-stream"
 
             # Validate file size
             file_size = len(file_content)
             if file_size > settings.max_file_size:
                 raise SaaSPlatformException(
                     message=f"File size exceeds maximum allowed size of {settings.max_file_size} bytes",
-                    error_code="FILE_TOO_LARGE"
+                    error_code="FILE_TOO_LARGE",
                 )
 
             # Upload to S3
@@ -92,8 +99,7 @@ class StorageService:
 
         except ClientError as e:
             raise SaaSPlatformException(
-                message=f"Failed to upload file: {str(e)}",
-                error_code="UPLOAD_FAILED"
+                message=f"Failed to upload file: {str(e)}", error_code="UPLOAD_FAILED"
             )
 
     def delete_file(self, file_key: str) -> bool:
@@ -107,16 +113,12 @@ class StorageService:
             True if deleted successfully
         """
         try:
-            self.s3_client.delete_object(
-                Bucket=self.bucket_name,
-                Key=file_key
-            )
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=file_key)
             return True
 
         except ClientError as e:
             raise SaaSPlatformException(
-                message=f"Failed to delete file: {str(e)}",
-                error_code="DELETE_FAILED"
+                message=f"Failed to delete file: {str(e)}", error_code="DELETE_FAILED"
             )
 
     def get_presigned_url(self, file_key: str, expiration: int = 3600) -> str:
@@ -132,19 +134,16 @@ class StorageService:
         """
         try:
             url = self.s3_client.generate_presigned_url(
-                'get_object',
-                Params={
-                    'Bucket': self.bucket_name,
-                    'Key': file_key
-                },
-                ExpiresIn=expiration
+                "get_object",
+                Params={"Bucket": self.bucket_name, "Key": file_key},
+                ExpiresIn=expiration,
             )
             return url
 
         except ClientError as e:
             raise SaaSPlatformException(
                 message=f"Failed to generate presigned URL: {str(e)}",
-                error_code="PRESIGNED_URL_FAILED"
+                error_code="PRESIGNED_URL_FAILED",
             )
 
     def validate_file_type(self, filename: str) -> bool:
@@ -157,5 +156,7 @@ class StorageService:
         Returns:
             True if file type is allowed
         """
-        file_extension = f".{filename.split('.')[-1].lower()}" if '.' in filename else ''
+        file_extension = (
+            f".{filename.split('.')[-1].lower()}" if "." in filename else ""
+        )
         return file_extension in settings.allowed_file_types

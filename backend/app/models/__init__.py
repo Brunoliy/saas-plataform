@@ -1,13 +1,13 @@
 """Database models."""
 
-from app.models.user import User
-from app.models.professional import ProfessionalProfile, ProfessionalSkill
+from app.models.ai_analysis import AIAnalysis
 from app.models.client import ClientProfile
-from app.models.skill import Skill
+from app.models.professional import ProfessionalProfile, ProfessionalSkill
 from app.models.project import Project
 from app.models.proposal import Proposal
 from app.models.review import Review
-from app.models.ai_analysis import AIAnalysis
+from app.models.skill import Skill
+from app.models.user import User
 
 __all__ = [
     "User",
@@ -19,4 +19,4 @@ __all__ = [
     "Proposal",
     "Review",
     "AIAnalysis",
-] 
+]

@@ -1,9 +1,10 @@
 """Skill repository for database operations."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
-from sqlalchemy.orm import Session
+
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 from app.models.skill import Skill
 from app.schemas.skill import SkillCreate, SkillUpdate
@@ -22,7 +23,7 @@ class SkillRepository:
             name=skill_data.name,
             category=skill_data.category,
             description=skill_data.description,
-            active=True
+            active=True,
         )
 
         self.db.add(db_skill)
@@ -32,15 +33,19 @@ class SkillRepository:
 
     def get_by_id(self, skill_id: UUID) -> Optional[Skill]:
         """Get skill by ID (only non-deleted skills)."""
-        return self.db.query(Skill).filter(
-            and_(Skill.id == skill_id, Skill.deleted_at.is_(None))
-        ).first()
+        return (
+            self.db.query(Skill)
+            .filter(and_(Skill.id == skill_id, Skill.deleted_at.is_(None)))
+            .first()
+        )
 
     def get_by_name(self, name: str) -> Optional[Skill]:
         """Get skill by name (only non-deleted skills)."""
-        return self.db.query(Skill).filter(
-            and_(Skill.name == name, Skill.deleted_at.is_(None))
-        ).first()
+        return (
+            self.db.query(Skill)
+            .filter(and_(Skill.name == name, Skill.deleted_at.is_(None)))
+            .first()
+        )
 
     def update(self, skill_id: UUID, skill_data: SkillUpdate) -> Optional[Skill]:
         """Update skill."""
@@ -66,7 +71,9 @@ class SkillRepository:
         self.db.commit()
         return True
 
-    def list_skills(self, skip: int = 0, limit: int = 20, include_deleted: bool = False) -> List[Skill]:
+    def list_skills(
+        self, skip: int = 0, limit: int = 20, include_deleted: bool = False
+    ) -> list[Skill]:
         """List skills with pagination."""
         query = self.db.query(Skill)
 
@@ -84,23 +91,27 @@ class SkillRepository:
 
         return query.count()
 
-    def get_skills_by_category(self, category: str, skip: int = 0, limit: int = 20) -> List[Skill]:
+    def get_skills_by_category(
+        self, category: str, skip: int = 0, limit: int = 20
+    ) -> list[Skill]:
         """Get skills by category."""
-        return self.db.query(Skill).filter(
-            and_(
-                Skill.category == category,
-                Skill.deleted_at.is_(None)
-            )
-        ).offset(skip).limit(limit).all()
+        return (
+            self.db.query(Skill)
+            .filter(and_(Skill.category == category, Skill.deleted_at.is_(None)))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-    def get_active_skills(self, skip: int = 0, limit: int = 20) -> List[Skill]:
+    def get_active_skills(self, skip: int = 0, limit: int = 20) -> list[Skill]:
         """Get active skills."""
-        return self.db.query(Skill).filter(
-            and_(
-                Skill.active == True,
-                Skill.deleted_at.is_(None)
-            )
-        ).offset(skip).limit(limit).all()
+        return (
+            self.db.query(Skill)
+            .filter(and_(Skill.active == True, Skill.deleted_at.is_(None)))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
     def activate_skill(self, skill_id: UUID) -> Optional[Skill]:
         """Activate skill."""
@@ -124,20 +135,34 @@ class SkillRepository:
         self.db.refresh(db_skill)
         return db_skill
 
-    def get_categories(self) -> List[str]:
+    def get_categories(self) -> list[str]:
         """Get all unique skill categories."""
-        result = self.db.query(Skill.category).filter(
-            Skill.deleted_at.is_(None)
-        ).distinct().all()
+        result = (
+            self.db.query(Skill.category)
+            .filter(Skill.deleted_at.is_(None))
+            .distinct()
+            .all()
+        )
 
         return [category[0] for category in result]
 
-    def search_skills(self, search_term: str, skip: int = 0, limit: int = 20) -> List[Skill]:
+    def search_skills(
+        self, search_term: str, skip: int = 0, limit: int = 20
+    ) -> list[Skill]:
         """Search skills by name or description."""
         search_pattern = f"%{search_term}%"
-        return self.db.query(Skill).filter(
-            and_(
-                (Skill.name.ilike(search_pattern) | Skill.description.ilike(search_pattern)),
-                Skill.deleted_at.is_(None)
+        return (
+            self.db.query(Skill)
+            .filter(
+                and_(
+                    (
+                        Skill.name.ilike(search_pattern)
+                        | Skill.description.ilike(search_pattern)
+                    ),
+                    Skill.deleted_at.is_(None),
+                )
             )
-        ).offset(skip).limit(limit).all()
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )

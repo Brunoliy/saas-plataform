@@ -1,11 +1,11 @@
 """Professional schemas."""
 
-from decimal import Decimal
-from typing import Optional, List
-from uuid import UUID
 from datetime import datetime
+from decimal import Decimal
+from typing import Optional
+from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProfessionalSkillBase(BaseModel):
@@ -47,13 +47,14 @@ class ProfessionalProfileBase(BaseModel):
 
     title: str = Field(max_length=255)
     description: Optional[str] = None
+    bio: Optional[str] = Field(default=None, description="About section for the professional")
     hourly_rate: Optional[Decimal] = Field(default=None, ge=0)
 
 
 class ProfessionalProfileCreate(ProfessionalProfileBase):
     """Create professional profile schema."""
 
-    skills: Optional[List[ProfessionalSkillCreate]] = Field(default_factory=list)
+    skills: Optional[list[ProfessionalSkillCreate]] = Field(default_factory=list)
 
 
 class ProfessionalProfileUpdate(BaseModel):
@@ -61,6 +62,7 @@ class ProfessionalProfileUpdate(BaseModel):
 
     title: Optional[str] = Field(default=None, max_length=255)
     description: Optional[str] = None
+    bio: Optional[str] = None
     hourly_rate: Optional[Decimal] = Field(default=None, ge=0)
 
 
@@ -71,7 +73,7 @@ class ProfessionalProfileResponse(ProfessionalProfileBase):
     user_id: UUID
     average_rating: Optional[Decimal] = None
     total_reviews: int = 0
-    skills: List[ProfessionalSkillResponse] = []
+    skills: list[ProfessionalSkillResponse] = []
     created_at: datetime
     updated_at: datetime
 

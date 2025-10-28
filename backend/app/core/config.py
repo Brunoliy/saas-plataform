@@ -1,8 +1,7 @@
 """Application configuration settings."""
 
-import os
-from typing import Optional, List
 import json
+from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
@@ -23,7 +22,9 @@ class Settings(BaseSettings):
     # JWT
     jwt_secret_key: str = Field(env="JWT_SECRET_KEY")
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
-    access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    access_token_expire_minutes: int = Field(
+        default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES"
+    )
     refresh_token_expire_days: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
 
     # Redis
@@ -31,10 +32,14 @@ class Settings(BaseSettings):
 
     # Kafka (Optional)
     kafka_enabled: bool = Field(default=False, env="KAFKA_ENABLED")
-    kafka_bootstrap_servers: str = Field(default="localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS")
+    kafka_bootstrap_servers: str = Field(
+        default="localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS"
+    )
 
     # CORS
-    cors_origins: List[str] = Field(default=["http://localhost:3000", "http://localhost:5173"])
+    cors_origins: list[str] = Field(
+        default=["http://localhost:3000", "http://localhost:5173"]
+    )
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -62,10 +67,14 @@ class Settings(BaseSettings):
 
     # File upload & AWS S3
     max_file_size: int = Field(default=10 * 1024 * 1024, env="MAX_FILE_SIZE")  # 10MB
-    allowed_file_types: List[str] = Field(default=[".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx"])
+    allowed_file_types: list[str] = Field(
+        default=[".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx"]
+    )
 
     aws_access_key_id: Optional[str] = Field(default=None, env="AWS_ACCESS_KEY_ID")
-    aws_secret_access_key: Optional[str] = Field(default=None, env="AWS_SECRET_ACCESS_KEY")
+    aws_secret_access_key: Optional[str] = Field(
+        default=None, env="AWS_SECRET_ACCESS_KEY"
+    )
     aws_region: str = Field(default="sa-east-1", env="AWS_REGION")
     aws_s3_bucket: Optional[str] = Field(default=None, env="AWS_S3_BUCKET")
     s3_endpoint_url: Optional[str] = Field(default=None, env="S3_ENDPOINT_URL")
@@ -82,7 +91,9 @@ class Settings(BaseSettings):
 
     # AI Service - Hugging Face
     ai_provider: str = Field(default="huggingface", env="AI_PROVIDER")
-    ai_model: str = Field(default="meta-llama/Meta-Llama-3-70B-Instruct", env="AI_MODEL")
+    ai_model: str = Field(
+        default="meta-llama/Meta-Llama-3-70B-Instruct", env="AI_MODEL"
+    )
     ai_model_version: str = Field(default="1.0.0", env="AI_MODEL_VERSION")
     ai_analysis_enabled: bool = Field(default=True, env="AI_ANALYSIS_ENABLED")
     ai_max_tokens: int = Field(default=1024, env="AI_MAX_TOKENS")
@@ -101,7 +112,9 @@ class Settings(BaseSettings):
     sentry_dsn_backend: Optional[str] = Field(default=None, env="SENTRY_DSN_BACKEND")
     sentry_dsn_frontend: Optional[str] = Field(default=None, env="SENTRY_DSN_FRONTEND")
     sentry_environment: str = Field(default="production", env="SENTRY_ENVIRONMENT")
-    sentry_traces_sample_rate: float = Field(default=0.1, env="SENTRY_TRACES_SAMPLE_RATE")
+    sentry_traces_sample_rate: float = Field(
+        default=0.1, env="SENTRY_TRACES_SAMPLE_RATE"
+    )
 
     # URLs (for emails and redirects)
     frontend_url: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
@@ -117,4 +130,4 @@ class Settings(BaseSettings):
 
 
 # Global settings instance
-settings = Settings() 
+settings = Settings()

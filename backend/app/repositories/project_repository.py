@@ -1,9 +1,10 @@
 """Project repository for database operations."""
 
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
-from sqlalchemy.orm import Session
+
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 from app.models.project import Project, ProjectStatus
 from app.schemas.project import ProjectCreate, ProjectUpdate
@@ -24,7 +25,7 @@ class ProjectRepository:
             description=project_data.description,
             budget=project_data.budget,
             deadline=project_data.deadline,
-            status=ProjectStatus.OPEN
+            status=ProjectStatus.OPEN,
         )
 
         self.db.add(db_project)
@@ -34,11 +35,15 @@ class ProjectRepository:
 
     def get_by_id(self, project_id: UUID) -> Optional[Project]:
         """Get project by ID (only non-deleted projects)."""
-        return self.db.query(Project).filter(
-            and_(Project.id == project_id, Project.deleted_at.is_(None))
-        ).first()
+        return (
+            self.db.query(Project)
+            .filter(and_(Project.id == project_id, Project.deleted_at.is_(None)))
+            .first()
+        )
 
-    def update(self, project_id: UUID, project_data: ProjectUpdate) -> Optional[Project]:
+    def update(
+        self, project_id: UUID, project_data: ProjectUpdate
+    ) -> Optional[Project]:
         """Update project."""
         db_project = self.get_by_id(project_id)
         if not db_project:
@@ -62,7 +67,9 @@ class ProjectRepository:
         self.db.commit()
         return True
 
-    def list_projects(self, skip: int = 0, limit: int = 20, include_deleted: bool = False) -> List[Project]:
+    def list_projects(
+        self, skip: int = 0, limit: int = 20, include_deleted: bool = False
+    ) -> list[Project]:
         """List projects with pagination."""
         query = self.db.query(Project)
 
@@ -80,34 +87,50 @@ class ProjectRepository:
 
         return query.count()
 
-    def get_projects_by_client(self, client_id: UUID, skip: int = 0, limit: int = 20) -> List[Project]:
+    def get_projects_by_client(
+        self, client_id: UUID, skip: int = 0, limit: int = 20
+    ) -> list[Project]:
         """Get projects by client ID."""
-        return self.db.query(Project).filter(
-            and_(
-                Project.client_id == client_id,
-                Project.deleted_at.is_(None)
-            )
-        ).offset(skip).limit(limit).all()
+        return (
+            self.db.query(Project)
+            .filter(and_(Project.client_id == client_id, Project.deleted_at.is_(None)))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-    def get_projects_by_status(self, status: ProjectStatus, skip: int = 0, limit: int = 20) -> List[Project]:
+    def get_projects_by_status(
+        self, status: ProjectStatus, skip: int = 0, limit: int = 20
+    ) -> list[Project]:
         """Get projects by status."""
-        return self.db.query(Project).filter(
-            and_(
-                Project.status == status,
-                Project.deleted_at.is_(None)
-            )
-        ).offset(skip).limit(limit).all()
+        return (
+            self.db.query(Project)
+            .filter(and_(Project.status == status, Project.deleted_at.is_(None)))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-    def get_projects_by_professional(self, professional_id: UUID, skip: int = 0, limit: int = 20) -> List[Project]:
+    def get_projects_by_professional(
+        self, professional_id: UUID, skip: int = 0, limit: int = 20
+    ) -> list[Project]:
         """Get projects by professional ID."""
-        return self.db.query(Project).filter(
-            and_(
-                Project.selected_professional_id == professional_id,
-                Project.deleted_at.is_(None)
+        return (
+            self.db.query(Project)
+            .filter(
+                and_(
+                    Project.selected_professional_id == professional_id,
+                    Project.deleted_at.is_(None),
+                )
             )
-        ).offset(skip).limit(limit).all()
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-    def assign_professional(self, project_id: UUID, professional_id: UUID) -> Optional[Project]:
+    def assign_professional(
+        self, project_id: UUID, professional_id: UUID
+    ) -> Optional[Project]:
         """Assign a professional to a project."""
         db_project = self.get_by_id(project_id)
         if not db_project:
@@ -119,7 +142,9 @@ class ProjectRepository:
         self.db.refresh(db_project)
         return db_project
 
-    def update_status(self, project_id: UUID, status: ProjectStatus) -> Optional[Project]:
+    def update_status(
+        self, project_id: UUID, status: ProjectStatus
+    ) -> Optional[Project]:
         """Update project status."""
         db_project = self.get_by_id(project_id)
         if not db_project:
@@ -130,6 +155,6 @@ class ProjectRepository:
         self.db.refresh(db_project)
         return db_project
 
-    def get_open_projects(self, skip: int = 0, limit: int = 20) -> List[Project]:
+    def get_open_projects(self, skip: int = 0, limit: int = 20) -> list[Project]:
         """Get all open projects."""
         return self.get_projects_by_status(ProjectStatus.OPEN, skip, limit)
