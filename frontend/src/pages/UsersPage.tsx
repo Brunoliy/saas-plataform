@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserService } from '../services/userService';
 import { User, PaginatedResponse } from '../types/user';
+import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'react-hot-toast';
 import {
   PlusIcon,
@@ -10,6 +12,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 const UsersPage: React.FC = () => {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -39,8 +43,15 @@ const UsersPage: React.FC = () => {
   };
 
   useEffect(() => {
+    // Check if user is admin
+    if (user && user.account_type !== 'admin') {
+      toast.error('You do not have permission to access this page');
+      navigate('/');
+      return;
+    }
+
     fetchUsers();
-  }, []);
+  }, [user, navigate]);
 
   const handleDeleteUser = async (userId: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este usuário?')) {
@@ -78,7 +89,16 @@ const UsersPage: React.FC = () => {
   };
 
   const getAccountTypeLabel = (accountType: string) => {
-    return accountType === 'CLIENT' ? 'Cliente' : 'Profissional';
+    switch (accountType) {
+      case 'company':
+        return 'Empresa';
+      case 'professional':
+        return 'Profissional';
+      case 'admin':
+        return 'Administrador';
+      default:
+        return accountType;
+    }
   };
 
   if (loading) {
@@ -144,9 +164,11 @@ const UsersPage: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    user.account_type === 'CLIENT'
+                    user.account_type === 'company'
                       ? 'bg-green-100 text-green-800'
-                      : 'bg-blue-100 text-blue-800'
+                      : user.account_type === 'professional'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-purple-100 text-purple-800'
                   }`}>
                     {getAccountTypeLabel(user.account_type)}
                   </span>
