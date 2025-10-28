@@ -108,7 +108,7 @@ def get_current_user_account_type(credentials: HTTPAuthorizationCredentials = De
 def require_any_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Require any valid user account type and return user ID."""
     token_data = verify_token(credentials.credentials)
-    check_permissions(token_data.account_type, ["PROFESSIONAL", "CLIENT"])
+    check_permissions(token_data.account_type, ["professional", "client"])
     return token_data.user_id
 
 

@@ -27,7 +27,7 @@ class AuthService:
         user = self.user_repository.create(user_data)
 
         # Create tokens
-        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type}
+        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value if hasattr(user.account_type, 'value') else user.account_type}
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
 
@@ -47,7 +47,7 @@ class AuthService:
             raise AuthenticationError("Account is disabled")
 
         # Create tokens
-        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type}
+        token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value if hasattr(user.account_type, 'value') else user.account_type}
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
 
@@ -73,7 +73,7 @@ class AuthService:
             raise AuthenticationError("Account is disabled")
 
         # Create new tokens
-        new_token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type}
+        new_token_data = {"sub": str(user.id), "email": user.email, "account_type": user.account_type.value if hasattr(user.account_type, 'value') else user.account_type}
         access_token = create_access_token(data=new_token_data)
         new_refresh_token = create_refresh_token(data=new_token_data)
 
