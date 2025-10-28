@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { professionalService, ProfessionalProfile } from '@/services/professionalService'
 import { toast } from 'react-hot-toast'
+import SocialLinks from '@/components/SocialLinks'
 
 const ProfilePage = () => {
   const { user } = useAuthStore()
@@ -140,6 +141,16 @@ const ProfilePage = () => {
                         {professionalProfile.bio || 'No bio added yet. Click Edit to add one.'}
                       </p>
                     )}
+                  </div>
+
+                  {/* Social Links Section */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <SocialLinks
+                      professionalId={professionalProfile.id}
+                      links={professionalProfile.links || []}
+                      onLinksUpdate={loadProfessionalProfile}
+                      isOwner={true}
+                    />
                   </div>
                 </div>
               ) : (
