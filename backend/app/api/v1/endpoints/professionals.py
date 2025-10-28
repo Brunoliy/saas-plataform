@@ -11,6 +11,9 @@ from app.repositories.professional_repository import ProfessionalRepository
 from app.repositories.skill_repository import SkillRepository
 from app.schemas.common import PaginatedResponse
 from app.schemas.professional import (
+    ProfessionalLinkCreate,
+    ProfessionalLinkResponse,
+    ProfessionalLinkUpdate,
     ProfessionalProfileCreate,
     ProfessionalProfileResponse,
     ProfessionalProfileUpdate,
@@ -231,6 +234,124 @@ async def remove_skill_from_professional(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Skill not found in professional profile",
+            )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format"
+        )
+
+
+@router.post(
+    "/{professional_id}/links",
+    response_model=ProfessionalLinkResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_link_to_professional(
+    professional_id: str,
+    link_data: ProfessionalLinkCreate,
+    current_user_id: str = Depends(get_current_user_id),
+    professional_service: ProfessionalService = Depends(get_professional_service),
+):
+    """Add a social link to professional profile."""
+    try:
+        profile_uuid = UUID(professional_id)
+        user_uuid = UUID(current_user_id)
+
+        # Verify ownership
+        profile = await professional_service.get_profile_by_id(profile_uuid)
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Professional profile not found",
+            )
+
+        if profile.user_id != user_uuid:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to modify this profile",
+            )
+
+        return await professional_service.add_link(profile_uuid, link_data)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.put(
+    "/{professional_id}/links/{link_id}",
+    response_model=ProfessionalLinkResponse,
+)
+async def update_professional_link(
+    professional_id: str,
+    link_id: str,
+    link_update: ProfessionalLinkUpdate,
+    current_user_id: str = Depends(get_current_user_id),
+    professional_service: ProfessionalService = Depends(get_professional_service),
+):
+    """Update a social link."""
+    try:
+        profile_uuid = UUID(professional_id)
+        link_uuid = UUID(link_id)
+        user_uuid = UUID(current_user_id)
+
+        # Verify ownership
+        profile = await professional_service.get_profile_by_id(profile_uuid)
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Professional profile not found",
+            )
+
+        if profile.user_id != user_uuid:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to modify this profile",
+            )
+
+        updated_link = await professional_service.update_link(link_uuid, link_update)
+        if not updated_link:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Link not found",
+            )
+        return updated_link
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.delete(
+    "/{professional_id}/links/{link_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def remove_link_from_professional(
+    professional_id: str,
+    link_id: str,
+    current_user_id: str = Depends(get_current_user_id),
+    professional_service: ProfessionalService = Depends(get_professional_service),
+):
+    """Remove a social link from professional profile."""
+    try:
+        profile_uuid = UUID(professional_id)
+        link_uuid = UUID(link_id)
+        user_uuid = UUID(current_user_id)
+
+        # Verify ownership
+        profile = await professional_service.get_profile_by_id(profile_uuid)
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Professional profile not found",
+            )
+
+        if profile.user_id != user_uuid:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to modify this profile",
+            )
+
+        success = await professional_service.remove_link(profile_uuid, link_uuid)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Link not found in professional profile",
             )
     except ValueError:
         raise HTTPException(

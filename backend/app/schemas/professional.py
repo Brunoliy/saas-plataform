@@ -42,6 +42,39 @@ class ProfessionalSkillResponse(ProfessionalSkillBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProfessionalLinkBase(BaseModel):
+    """Base professional link schema."""
+
+    platform: str = Field(max_length=50, description="Platform name (github, linkedin, twitter, portfolio, other)")
+    url: str = Field(description="Link URL")
+    label: Optional[str] = Field(default=None, max_length=255, description="Optional custom label")
+
+
+class ProfessionalLinkCreate(ProfessionalLinkBase):
+    """Create professional link schema."""
+
+    pass
+
+
+class ProfessionalLinkUpdate(BaseModel):
+    """Update professional link schema."""
+
+    platform: Optional[str] = Field(default=None, max_length=50)
+    url: Optional[str] = None
+    label: Optional[str] = Field(default=None, max_length=255)
+
+
+class ProfessionalLinkResponse(ProfessionalLinkBase):
+    """Professional link response schema."""
+
+    id: UUID
+    professional_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ProfessionalProfileBase(BaseModel):
     """Base professional profile schema."""
 
@@ -74,6 +107,7 @@ class ProfessionalProfileResponse(ProfessionalProfileBase):
     average_rating: Optional[Decimal] = None
     total_reviews: int = 0
     skills: list[ProfessionalSkillResponse] = []
+    links: list[ProfessionalLinkResponse] = []
     created_at: datetime
     updated_at: datetime
 
