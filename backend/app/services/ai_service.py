@@ -1,5 +1,6 @@
 """AI service."""
 
+import logging
 from datetime import datetime
 from uuid import UUID
 
@@ -7,6 +8,9 @@ from app.models.ai_analysis import AIAnalysis
 from app.repositories.ai_repository import AIRepository
 from app.repositories.professional_repository import ProfessionalRepository
 from app.repositories.project_repository import ProjectRepository
+from app.services.embedding_service import EmbeddingService
+
+logger = logging.getLogger(__name__)
 
 
 class AIService:
@@ -17,11 +21,13 @@ class AIService:
         ai_repository: AIRepository,
         project_repository: ProjectRepository,
         professional_repository: ProfessionalRepository,
+        embedding_service: EmbeddingService | None = None,
     ):
         """Initialize service."""
         self.ai_repository = ai_repository
         self.project_repository = project_repository
         self.professional_repository = professional_repository
+        self.embedding_service = embedding_service or EmbeddingService()
 
     async def recommend_professionals_for_project(
         self, project_id: UUID, limit: int = 10
@@ -47,6 +53,13 @@ class AIService:
                 project_id, professional.id
             )
 
+            # Determine model version based on whether embeddings were used
+            model_version = (
+                "v2.0-semantic"
+                if (self.embedding_service and self.embedding_service.api_key)
+                else "v1.0-basic"
+            )
+
             # Store AI analysis
             analysis = self.ai_repository.create(
                 project_id=project_id,
@@ -55,7 +68,7 @@ class AIService:
                 positive_factors=factors["positive"],
                 negative_factors=factors["negative"],
                 recommendation=self._generate_recommendation(score),
-                model_version="v1.0-basic",
+                model_version=model_version,
                 analysis_date=datetime.utcnow().isoformat(),
             )
 
@@ -140,8 +153,13 @@ class AIService:
     ) -> tuple[float, dict]:
         """
         Internal method to calculate compatibility score with detailed factors.
-        This is a simple implementation that can be enhanced with real AI later.
+        Uses semantic embeddings when available, falls back to basic scoring.
         """
+        # Get project
+        project = self.project_repository.get_by_id(project_id)
+        if not project:
+            return 0.0, {"positive": {}, "negative": {}}
+
         # Get professional and their skills
         professional = self.professional_repository.get_by_id(professional_id)
         if not professional:
@@ -151,6 +169,118 @@ class AIService:
             professional_id
         )
 
+        # Try semantic matching if embedding service is available and has API key
+        use_semantic = self.embedding_service and self.embedding_service.api_key
+
+        if use_semantic:
+            try:
+                return await self._calculate_compatibility_score_with_embeddings(
+                    project, professional, professional_skills
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Semantic matching failed, falling back to basic algorithm: {str(e)}"
+                )
+                # Fall through to basic algorithm
+
+        # Fallback to basic algorithm
+        return await self._calculate_compatibility_score_basic(
+            project, professional, professional_skills
+        )
+
+    async def _calculate_compatibility_score_with_embeddings(
+        self, project: any, professional: any, professional_skills: list
+    ) -> tuple[float, dict]:
+        """
+        Calculate compatibility score using semantic embeddings.
+        """
+        positive_factors = {}
+        negative_factors = {}
+
+        # Component 1: Description semantic match (40% weight)
+        description_score = 0.0
+        if project.description and professional.description:
+            description_score = await self._calculate_semantic_description_match(
+                project.description, professional.description
+            )
+            if description_score > 70:
+                positive_factors[
+                    "description_match"
+                ] = f"Excellent semantic match ({description_score:.1f}%)"
+            elif description_score > 50:
+                positive_factors[
+                    "description_match"
+                ] = f"Good semantic match ({description_score:.1f}%)"
+            else:
+                negative_factors[
+                    "description_mismatch"
+                ] = f"Low description match ({description_score:.1f}%)"
+
+        # Component 2: Skills semantic match (30% weight)
+        skills_score, matched_skills = await self._calculate_skills_semantic_match(
+            project, professional_skills
+        )
+        if matched_skills:
+            positive_factors[
+                "matched_skills"
+            ] = f"Matched skills: {', '.join(matched_skills[:5])}"
+        if skills_score > 70:
+            positive_factors[
+                "skills_match"
+            ] = f"Strong skills match ({skills_score:.1f}%)"
+        elif skills_score > 50:
+            positive_factors[
+                "skills_match"
+            ] = f"Moderate skills match ({skills_score:.1f}%)"
+        else:
+            negative_factors[
+                "skills_mismatch"
+            ] = f"Weak skills match ({skills_score:.1f}%)"
+
+        # Component 3: Experience/Rating (20% weight)
+        experience_score = 50.0
+        if professional.average_rating:
+            rating = float(professional.average_rating)
+            experience_score = (rating / 5.0) * 100
+            if rating >= 4.5:
+                positive_factors["rating"] = f"Excellent rating ({rating:.1f}/5)"
+            elif rating >= 4.0:
+                positive_factors["rating"] = f"Good rating ({rating:.1f}/5)"
+            elif rating < 3.0:
+                negative_factors["low_rating"] = f"Low rating ({rating:.1f}/5)"
+
+        # Component 4: Review count bonus (10% weight)
+        review_score = 0.0
+        if professional.total_reviews >= 10:
+            review_score = min((professional.total_reviews / 50) * 100, 100)
+            positive_factors[
+                "reviews"
+            ] = f"{professional.total_reviews} reviews (experienced professional)"
+
+        # Weighted final score
+        final_score = (
+            description_score * 0.40
+            + skills_score * 0.30
+            + experience_score * 0.20
+            + review_score * 0.10
+        )
+
+        # Ensure score is between 0 and 100
+        final_score = max(0.0, min(100.0, final_score))
+
+        logger.info(
+            f"Semantic match score: {final_score:.1f} (desc: {description_score:.1f}, "
+            f"skills: {skills_score:.1f}, exp: {experience_score:.1f}, reviews: {review_score:.1f})"
+        )
+
+        return final_score, {"positive": positive_factors, "negative": negative_factors}
+
+    async def _calculate_compatibility_score_basic(
+        self, project: any, professional: any, professional_skills: list
+    ) -> tuple[float, dict]:
+        """
+        Basic compatibility scoring without semantic embeddings (fallback).
+        """
         # Base score starts at 50
         base_score = 50.0
         positive_factors = {}
@@ -221,6 +351,114 @@ class AIService:
         final_score = max(0.0, min(100.0, base_score))
 
         return final_score, {"positive": positive_factors, "negative": negative_factors}
+
+    async def _calculate_semantic_description_match(
+        self, project_description: str, professional_description: str
+    ) -> float:
+        """
+        Calculate semantic similarity between project and professional descriptions.
+        Returns a score between 0 and 100.
+        """
+        if not project_description or not professional_description:
+            logger.warning("Missing descriptions for semantic matching")
+            return 0.0
+
+        try:
+            similarity = await self.embedding_service.semantic_similarity(
+                project_description, professional_description
+            )
+            # Convert 0-1 similarity to 0-100 score
+            return similarity * 100
+
+        except Exception as e:
+            logger.error(f"Error in semantic description match: {str(e)}")
+            return 0.0
+
+    async def _calculate_skills_semantic_match(
+        self, project: any, professional_skills: list
+    ) -> tuple[float, list[str]]:
+        """
+        Calculate how well professional skills match project requirements using embeddings.
+        Returns (score 0-100, list of matched skill names).
+        """
+        if not professional_skills:
+            return 0.0, []
+
+        # Check if project has requirements with required skills
+        if not project.requirements or "required_skills" not in project.requirements:
+            # Fallback: use basic count-based scoring
+            skill_count = len(professional_skills)
+            base_score = min(skill_count * 10, 50)
+            skill_names = [
+                skill.skill.name
+                for skill in professional_skills
+                if hasattr(skill, "skill")
+            ]
+            return base_score, skill_names
+
+        required_skills = project.requirements.get("required_skills", [])
+        if not required_skills:
+            return 0.0, []
+
+        try:
+            # Get embeddings for all skills
+            required_skill_names = [
+                req.get("skill_name", "") for req in required_skills
+            ]
+            professional_skill_names = [
+                skill.skill.name
+                for skill in professional_skills
+                if hasattr(skill, "skill")
+            ]
+
+            # Generate embeddings
+            required_embeddings = await self.embedding_service.embed_texts(
+                required_skill_names
+            )
+            professional_embeddings = await self.embedding_service.embed_texts(
+                professional_skill_names
+            )
+
+            # Calculate best matches for each required skill
+            matches = []
+            matched_skills = []
+
+            for i, req_emb in enumerate(required_embeddings):
+                if req_emb is None:
+                    continue
+
+                best_similarity = 0.0
+                best_match_idx = -1
+
+                for j, prof_emb in enumerate(professional_embeddings):
+                    if prof_emb is None:
+                        continue
+
+                    similarity = self.embedding_service.cosine_similarity(
+                        req_emb, prof_emb
+                    )
+
+                    if similarity and similarity > best_similarity:
+                        best_similarity = similarity
+                        best_match_idx = j
+
+                if best_similarity > 0.7:  # Threshold for considering a match
+                    matches.append(best_similarity)
+                    if best_match_idx >= 0:
+                        matched_skills.append(professional_skill_names[best_match_idx])
+
+            # Calculate score based on match quality
+            if not matches:
+                return 0.0, []
+
+            avg_match_quality = sum(matches) / len(required_skills)
+            score = avg_match_quality * 100
+
+            return score, matched_skills
+
+        except Exception as e:
+            logger.error(f"Error in skills semantic match: {str(e)}")
+            return 0.0, []
 
     def _generate_recommendation(self, score: float) -> str:
         """Generate a text recommendation based on score."""
