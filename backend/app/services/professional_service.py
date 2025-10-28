@@ -3,10 +3,16 @@
 from typing import Optional
 from uuid import UUID
 
-from app.models.professional import ProfessionalProfile, ProfessionalSkill
+from app.models.professional import (
+    ProfessionalLink,
+    ProfessionalProfile,
+    ProfessionalSkill,
+)
 from app.repositories.professional_repository import ProfessionalRepository
 from app.repositories.skill_repository import SkillRepository
 from app.schemas.professional import (
+    ProfessionalLinkCreate,
+    ProfessionalLinkUpdate,
     ProfessionalProfileCreate,
     ProfessionalProfileUpdate,
     ProfessionalSkillCreate,
@@ -130,3 +136,19 @@ class ProfessionalService:
         return self.professional_repository.update_rating(
             profile_id, average_rating, total_reviews
         )
+
+    async def add_link(
+        self, professional_id: UUID, link_data: ProfessionalLinkCreate
+    ) -> ProfessionalLink:
+        """Add a social link to professional profile."""
+        return self.professional_repository.add_link(professional_id, link_data)
+
+    async def update_link(
+        self, link_id: UUID, link_update: ProfessionalLinkUpdate
+    ) -> Optional[ProfessionalLink]:
+        """Update a social link."""
+        return self.professional_repository.update_link(link_id, link_update)
+
+    async def remove_link(self, professional_id: UUID, link_id: UUID) -> bool:
+        """Remove a social link from professional profile."""
+        return self.professional_repository.remove_link(professional_id, link_id)

@@ -6,8 +6,14 @@ from uuid import UUID
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from app.models.professional import ProfessionalProfile, ProfessionalSkill
+from app.models.professional import (
+    ProfessionalLink,
+    ProfessionalProfile,
+    ProfessionalSkill,
+)
 from app.schemas.professional import (
+    ProfessionalLinkCreate,
+    ProfessionalLinkUpdate,
     ProfessionalProfileCreate,
     ProfessionalProfileUpdate,
 )
@@ -179,3 +185,68 @@ class ProfessionalRepository:
             )
             .all()
         )
+
+    def add_link(
+        self, professional_id: UUID, link_data: ProfessionalLinkCreate
+    ) -> ProfessionalLink:
+        """Add a social link to professional profile."""
+        db_link = ProfessionalLink(
+            professional_id=professional_id,
+            platform=link_data.platform,
+            url=link_data.url,
+            label=link_data.label,
+        )
+        self.db.add(db_link)
+        self.db.commit()
+        self.db.refresh(db_link)
+        return db_link
+
+    def update_link(
+        self, link_id: UUID, link_update: ProfessionalLinkUpdate
+    ) -> Optional[ProfessionalLink]:
+        """Update a social link."""
+        db_link = (
+            self.db.query(ProfessionalLink)
+            .filter(
+                and_(
+                    ProfessionalLink.id == link_id,
+                    ProfessionalLink.deleted_at.is_(None),
+                )
+            )
+            .first()
+        )
+
+        if not db_link:
+            return None
+
+        if link_update.platform is not None:
+            db_link.platform = link_update.platform
+        if link_update.url is not None:
+            db_link.url = link_update.url
+        if link_update.label is not None:
+            db_link.label = link_update.label
+
+        self.db.commit()
+        self.db.refresh(db_link)
+        return db_link
+
+    def remove_link(self, professional_id: UUID, link_id: UUID) -> bool:
+        """Remove a social link from professional profile."""
+        db_link = (
+            self.db.query(ProfessionalLink)
+            .filter(
+                and_(
+                    ProfessionalLink.id == link_id,
+                    ProfessionalLink.professional_id == professional_id,
+                    ProfessionalLink.deleted_at.is_(None),
+                )
+            )
+            .first()
+        )
+
+        if not db_link:
+            return False
+
+        db_link.soft_delete()
+        self.db.commit()
+        return True

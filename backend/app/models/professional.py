@@ -1,10 +1,22 @@
 """Professional models."""
 
+from enum import Enum
+
 from sqlalchemy import Column, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
+
+
+class LinkPlatform(str, Enum):
+    """Link platform enumeration."""
+
+    GITHUB = "github"
+    LINKEDIN = "linkedin"
+    TWITTER = "twitter"
+    PORTFOLIO = "portfolio"
+    OTHER = "other"
 
 
 class ProfessionalProfile(BaseModel):
@@ -25,6 +37,7 @@ class ProfessionalProfile(BaseModel):
     # Relationships
     user = relationship("User", back_populates="professional_profile")
     skills = relationship("ProfessionalSkill", back_populates="professional")
+    links = relationship("ProfessionalLink", back_populates="professional", cascade="all, delete-orphan")
     proposals = relationship("Proposal", back_populates="professional")
     ai_analyses = relationship("AIAnalysis", back_populates="professional")
 
@@ -53,3 +66,23 @@ class ProfessionalSkill(BaseModel):
     def __repr__(self) -> str:
         """String representation of the professional skill."""
         return f"<ProfessionalSkill(professional_id={self.professional_id}, skill_id={self.skill_id})>"
+
+
+class ProfessionalLink(BaseModel):
+    """Professional social link model."""
+
+    __tablename__ = "professional_links"
+
+    professional_id = Column(
+        UUID(as_uuid=True), ForeignKey("professional_profiles.id"), nullable=False
+    )
+    platform = Column(String(50), nullable=False)  # github, linkedin, twitter, portfolio, other
+    url = Column(Text, nullable=False)
+    label = Column(String(255), nullable=True)  # Optional custom label
+
+    # Relationships
+    professional = relationship("ProfessionalProfile", back_populates="links")
+
+    def __repr__(self) -> str:
+        """String representation of the professional link."""
+        return f"<ProfessionalLink(id={self.id}, professional_id={self.professional_id}, platform={self.platform})>"
