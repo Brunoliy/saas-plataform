@@ -35,7 +35,7 @@ async def get_professional_recommendations_for_project(
     Returns list of professionals ranked by compatibility score.
     """
     try:
-        recommendations = ai_service.recommend_professionals_for_project(
+        recommendations = await ai_service.recommend_professionals_for_project(
             project_id=project_id, limit=limit
         )
 
@@ -81,7 +81,7 @@ async def get_project_recommendations_for_professional(
     Returns list of open projects ranked by compatibility score.
     """
     try:
-        recommendations = ai_service.recommend_projects_for_professional(
+        recommendations = await ai_service.recommend_projects_for_professional(
             professional_id=professional_id, limit=limit
         )
 
@@ -127,7 +127,7 @@ async def calculate_compatibility(
     Returns detailed compatibility analysis.
     """
     try:
-        result = ai_service.calculate_compatibility_score(
+        result = await ai_service.calculate_compatibility_score(
             project_id=project_id, professional_id=professional_id
         )
 
@@ -173,7 +173,7 @@ async def get_my_recommended_projects(
                 detail="Professional profile not found. Please create a professional profile first.",
             )
 
-        recommendations = ai_service.recommend_projects_for_professional(
+        recommendations = await ai_service.recommend_projects_for_professional(
             professional_id=professional.id, limit=limit
         )
 
@@ -207,7 +207,7 @@ async def get_analysis(
     ai_service: AIService = Depends(get_ai_service),
 ):
     """Get AI analysis by ID."""
-    analysis = ai_service.get_analysis_by_id(analysis_id)
+    analysis = await ai_service.get_analysis_by_id(analysis_id)
 
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
@@ -218,11 +218,13 @@ async def get_analysis(
         "professional_id": str(analysis.professional_id)
         if analysis.professional_id
         else None,
-        "analysis_type": analysis.analysis_type,
-        "result_data": analysis.result_data,
-        "confidence_score": float(analysis.confidence_score)
-        if analysis.confidence_score
+        "compatibility_score": float(analysis.compatibility_score)
+        if analysis.compatibility_score
         else None,
+        "positive_factors": analysis.positive_factors,
+        "negative_factors": analysis.negative_factors,
+        "recommendation": analysis.recommendation,
         "model_version": analysis.model_version,
+        "analysis_date": analysis.analysis_date,
         "created_at": analysis.created_at,
     }

@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,6 +23,7 @@ class ProjectBase(BaseModel):
 
     title: str = Field(max_length=255)
     description: str
+    requirements: Optional[dict[str, Any]] = None
     budget: Optional[Decimal] = Field(default=None, ge=0)
     deadline: Optional[datetime] = None
 
@@ -38,6 +39,7 @@ class ProjectUpdate(BaseModel):
 
     title: Optional[str] = Field(default=None, max_length=255)
     description: Optional[str] = None
+    requirements: Optional[dict[str, Any]] = None
     budget: Optional[Decimal] = Field(default=None, ge=0)
     deadline: Optional[datetime] = None
     status: Optional[ProjectStatus] = None

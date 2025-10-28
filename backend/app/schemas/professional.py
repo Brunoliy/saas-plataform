@@ -45,9 +45,14 @@ class ProfessionalSkillResponse(ProfessionalSkillBase):
 class ProfessionalLinkBase(BaseModel):
     """Base professional link schema."""
 
-    platform: str = Field(max_length=50, description="Platform name (github, linkedin, twitter, portfolio, other)")
+    platform: str = Field(
+        max_length=50,
+        description="Platform name (github, linkedin, twitter, portfolio, other)",
+    )
     url: str = Field(description="Link URL")
-    label: Optional[str] = Field(default=None, max_length=255, description="Optional custom label")
+    label: Optional[str] = Field(
+        default=None, max_length=255, description="Optional custom label"
+    )
 
 
 class ProfessionalLinkCreate(ProfessionalLinkBase):
@@ -80,7 +85,9 @@ class ProfessionalProfileBase(BaseModel):
 
     title: str = Field(max_length=255)
     description: Optional[str] = None
-    bio: Optional[str] = Field(default=None, description="About section for the professional")
+    bio: Optional[str] = Field(
+        default=None, description="About section for the professional"
+    )
     hourly_rate: Optional[Decimal] = Field(default=None, ge=0)
 
 

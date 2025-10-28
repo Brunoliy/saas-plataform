@@ -3,7 +3,7 @@
 from enum import Enum
 
 from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -28,6 +28,7 @@ class Project(BaseModel):
     )
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
+    requirements = Column(JSONB, nullable=True)
     budget = Column(Numeric(12, 2), nullable=True)
     deadline = Column(DateTime, nullable=True)
     status = Column(String(20), nullable=False, default=ProjectStatus.OPEN)
