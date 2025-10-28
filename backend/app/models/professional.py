@@ -17,6 +17,7 @@ class ProfessionalProfile(BaseModel):
     )
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
+    bio = Column(Text, nullable=True)  # About section for professional profile
     hourly_rate = Column(Numeric(10, 2), nullable=True)
     average_rating = Column(Numeric(3, 2), nullable=True)
     total_reviews = Column(Integer, default=0, nullable=False)

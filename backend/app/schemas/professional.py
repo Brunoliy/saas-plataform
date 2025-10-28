@@ -47,6 +47,7 @@ class ProfessionalProfileBase(BaseModel):
 
     title: str = Field(max_length=255)
     description: Optional[str] = None
+    bio: Optional[str] = Field(default=None, description="About section for the professional")
     hourly_rate: Optional[Decimal] = Field(default=None, ge=0)
 
 
@@ -61,6 +62,7 @@ class ProfessionalProfileUpdate(BaseModel):
 
     title: Optional[str] = Field(default=None, max_length=255)
     description: Optional[str] = None
+    bio: Optional[str] = None
     hourly_rate: Optional[Decimal] = Field(default=None, ge=0)
 
 
