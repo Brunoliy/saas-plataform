@@ -9,7 +9,7 @@ const RegisterPage = () => {
     email: '',
     password: '',
     fullName: '',
-    accountType: 'client',
+    accountType: 'company',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -27,7 +27,7 @@ const RegisterPage = () => {
         email: formData.email,
         password: formData.password,
         full_name: formData.fullName,
-        account_type: formData.accountType as 'client' | 'professional',
+        account_type: formData.accountType as 'company' | 'professional',
       })
 
       // Store tokens
@@ -134,7 +134,7 @@ const RegisterPage = () => {
                 value={formData.accountType}
                 onChange={handleChange}
               >
-                <option value="client">Client</option>
+                <option value="company">Company</option>
                 <option value="professional">Professional</option>
               </select>
             </div>

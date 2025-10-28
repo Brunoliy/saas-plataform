@@ -4,7 +4,7 @@ export interface RegisterData {
   email: string;
   password: string;
   full_name: string;
-  account_type: 'client' | 'professional';
+  account_type: 'company' | 'professional';
 }
 
 export interface LoginData {
@@ -22,7 +22,7 @@ export interface UserData {
   id: string;
   email: string;
   full_name: string;
-  account_type: 'client' | 'professional';
+  account_type: 'company' | 'professional';
   is_active: boolean;
   created_at: string;
 }
