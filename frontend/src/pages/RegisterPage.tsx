@@ -115,11 +115,13 @@ const RegisterPage = () => {
                 type="password"
                 autoComplete="new-password"
                 required
+                minLength={8}
                 className="input mt-1"
-                placeholder="Password"
+                placeholder="Password (min. 8 characters)"
                 value={formData.password}
                 onChange={handleChange}
               />
+              <p className="mt-1 text-xs text-gray-500">Password must be at least 8 characters long</p>
             </div>
             <div>
               <label htmlFor="accountType" className="block text-sm font-medium text-gray-700">
