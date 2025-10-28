@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '855af8631231'
-down_revision = '3b12615ab738'
+revision = "855af8631231"
+down_revision = "3b12615ab738"
 branch_labels = None
 depends_on = None
 
@@ -28,10 +28,16 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(["professional_id"], ["professional_profiles.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["professional_id"], ["professional_profiles.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_professional_links_professional_id", "professional_links", ["professional_id"])
+    op.create_index(
+        "ix_professional_links_professional_id",
+        "professional_links",
+        ["professional_id"],
+    )
 
 
 def downgrade() -> None:
