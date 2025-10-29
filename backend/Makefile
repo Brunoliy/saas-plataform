@@ -1,5 +1,5 @@
 # Variables
-PYTHON_VERSION := 3.11
+PYTHON_VERSION := 3.13.4
 VENV_NAME := saas-platform-venv
 POETRY_ENV := $(shell poetry env info --path 2>/dev/null || echo "")
 
@@ -38,7 +38,7 @@ create-venv-mac: ## Create virtual environment for macOS
 	@echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)"
 	@rm -rf $(VENV_NAME)
 	@echo "$(YELLOW)Creating virtual environment...$(NC)"
-	@python$(PYTHON_VERSION) -m venv $(VENV_NAME)
+	@python -m venv $(VENV_NAME)
 	@echo "$(YELLOW)Setting pyenv local...$(NC)"
 	@pyenv local $(PYTHON_VERSION)
 	@echo "$(YELLOW)Activating virtual environment...$(NC)"
@@ -77,8 +77,8 @@ create-venv-wsl: ## Create virtual environment for WSL/Ubuntu
 	pyenv global $(PYTHON_VERSION) && \
 	echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)" && \
 	rm -rf $(VENV_NAME) && \
-	echo "$(YELLOW)Creating virtual environment...$(NC)" && \
-	python$(PYTHON_VERSION) -m venv $(VENV_NAME) && \
+		echo "$(YELLOW)Creating virtual environment...$(NC)" && \
+		python -m venv $(VENV_NAME) && \
 	echo "$(YELLOW)Setting pyenv local...$(NC)" && \
 	pyenv local $(PYTHON_VERSION) && \
 	echo "$(YELLOW)Activating virtual environment and installing dependencies...$(NC)" && \
