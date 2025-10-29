@@ -26,11 +26,28 @@ const ProfilePage = () => {
       setBio(profile.bio || '')
     } catch (error: any) {
       console.error('Failed to load professional profile:', error)
+      // If 404, profile doesn't exist yet - that's ok, we'll show create button
       if (error.response?.status !== 404) {
         toast.error('Failed to load professional profile')
       }
+      setProfessionalProfile(null)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleCreateProfile = async () => {
+    try {
+      setIsSaving(true)
+      const newProfile = await professionalService.createProfile({ bio: '' })
+      setProfessionalProfile(newProfile)
+      setBio('')
+      toast.success('Professional profile created!')
+    } catch (error) {
+      console.error('Failed to create profile:', error)
+      toast.error('Failed to create profile')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -154,9 +171,18 @@ const ProfilePage = () => {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-600">
-                  No professional profile found. Please create one first.
-                </p>
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-600 mb-4">
+                    You don't have a professional profile yet. Create one to start showcasing your skills and experience!
+                  </p>
+                  <button
+                    onClick={handleCreateProfile}
+                    disabled={isSaving}
+                    className="btn btn-primary"
+                  >
+                    {isSaving ? 'Creating...' : 'Create Professional Profile'}
+                  </button>
+                </div>
               )}
             </div>
           </div>
