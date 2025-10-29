@@ -16,12 +16,12 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add 'admin' value to the accounttype enum in PostgreSQL
-    op.execute("ALTER TYPE accounttype ADD VALUE IF NOT EXISTS 'admin'")
+    # No database schema changes needed.
+    # The account_type column is String(20), not a PostgreSQL ENUM.
+    # The 'admin' value is validated at the application level via Python's AccountType enum.
+    pass
 
 
 def downgrade() -> None:
-    # Note: PostgreSQL does not support removing values from enums directly
-    # This would require more complex migration (recreate enum, update column, etc.)
-    # For safety, we'll just warn that this cannot be automatically downgraded
+    # No database schema changes were made in upgrade, so no downgrade needed.
     pass
