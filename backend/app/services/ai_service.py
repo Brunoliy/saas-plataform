@@ -61,7 +61,7 @@ class AIService:
             )
 
             # Store AI analysis
-            analysis = self.ai_repository.create(
+            self.ai_repository.create(
                 project_id=project_id,
                 professional_id=professional.id,
                 compatibility_score=score,
@@ -423,7 +423,7 @@ class AIService:
             matches = []
             matched_skills = []
 
-            for i, req_emb in enumerate(required_embeddings):
+            for req_emb in required_embeddings:
                 if req_emb is None:
                     continue
 

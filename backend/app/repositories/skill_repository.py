@@ -107,7 +107,7 @@ class SkillRepository:
         """Get active skills."""
         return (
             self.db.query(Skill)
-            .filter(and_(Skill.active == True, Skill.deleted_at.is_(None)))
+            .filter(and_(Skill.active.is_(True), Skill.deleted_at.is_(None)))
             .offset(skip)
             .limit(limit)
             .all()

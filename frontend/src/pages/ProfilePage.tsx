@@ -39,7 +39,8 @@ const ProfilePage = () => {
   const handleCreateProfile = async () => {
     try {
       setIsSaving(true)
-      const newProfile = await professionalService.createProfile({ bio: '' })
+      const enteredTitle = window.prompt('Enter your professional title (e.g., Full-Stack Developer):', 'Professional') || 'Professional'
+      const newProfile = await professionalService.createProfile({ title: enteredTitle, bio: '' })
       setProfessionalProfile(newProfile)
       setBio('')
       toast.success('Professional profile created!')

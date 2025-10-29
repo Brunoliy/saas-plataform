@@ -1,7 +1,8 @@
 # Variables
-PYTHON_VERSION := 3.11
+PYTHON_VERSION := 3.13.4
 VENV_NAME := saas-platform-venv
 POETRY_ENV := $(shell poetry env info --path 2>/dev/null || echo "")
+POETRY := $(VENV_NAME)/bin/poetry
 
 # Colors for output
 RED := \033[0;31m
@@ -38,20 +39,20 @@ create-venv-mac: ## Create virtual environment for macOS
 	@echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)"
 	@rm -rf $(VENV_NAME)
 	@echo "$(YELLOW)Creating virtual environment...$(NC)"
-	@python$(PYTHON_VERSION) -m venv $(VENV_NAME)
+	@python -m venv $(VENV_NAME)
 	@echo "$(YELLOW)Setting pyenv local...$(NC)"
 	@pyenv local $(PYTHON_VERSION)
 	@echo "$(YELLOW)Activating virtual environment...$(NC)"
 	@source $(VENV_NAME)/bin/activate && \
-	echo "$(YELLOW)Upgrading pip...$(NC)" && \
-	pip install --upgrade pip && \
-	echo "$(YELLOW)Installing Poetry...$(NC)" && \
-	pip install poetry && \
-	echo "$(YELLOW)Configuring Poetry to use virtual environment...$(NC)" && \
-	poetry config virtualenvs.create false && \
-	poetry config virtualenvs.in-project true && \
-	echo "$(YELLOW)Installing dependencies...$(NC)" && \
-	poetry install --sync --no-root
+    echo "$(YELLOW)Upgrading pip...$(NC)" && \
+    pip install --upgrade pip && \
+    echo "$(YELLOW)Installing Poetry...$(NC)" && \
+    pip install poetry && \
+    echo "$(YELLOW)Configuring Poetry to use virtual environment...$(NC)" && \
+    $(POETRY) config virtualenvs.create false && \
+    $(POETRY) config virtualenvs.in-project true && \
+    echo "$(YELLOW)Installing dependencies...$(NC)" && \
+    $(POETRY) install --sync --no-root
 	@echo "$(GREEN)Virtual environment created successfully!$(NC)"
 	@echo "$(BLUE)To activate: source $(VENV_NAME)/bin/activate$(NC)"
 
@@ -77,17 +78,17 @@ create-venv-wsl: ## Create virtual environment for WSL/Ubuntu
 	pyenv global $(PYTHON_VERSION) && \
 	echo "$(YELLOW)Removing existing virtual environment if exists...$(NC)" && \
 	rm -rf $(VENV_NAME) && \
-	echo "$(YELLOW)Creating virtual environment...$(NC)" && \
-	python$(PYTHON_VERSION) -m venv $(VENV_NAME) && \
+		echo "$(YELLOW)Creating virtual environment...$(NC)" && \
+		python -m venv $(VENV_NAME) && \
 	echo "$(YELLOW)Setting pyenv local...$(NC)" && \
 	pyenv local $(PYTHON_VERSION) && \
 	echo "$(YELLOW)Activating virtual environment and installing dependencies...$(NC)" && \
-	. $(VENV_NAME)/bin/activate && \
-	pip install --upgrade pip && \
-	pip install poetry && \
-	poetry config virtualenvs.create false && \
-	poetry config virtualenvs.in-project true && \
-	poetry install --no-root
+    . $(VENV_NAME)/bin/activate && \
+    pip install --upgrade pip && \
+    pip install poetry && \
+    $(POETRY) config virtualenvs.create false && \
+    $(POETRY) config virtualenvs.in-project true && \
+    $(POETRY) install --no-root
 	@echo "$(GREEN)Virtual environment created successfully!$(NC)"
 	@echo "$(BLUE)To activate: source $(VENV_NAME)/bin/activate$(NC)"
 
@@ -100,16 +101,16 @@ clean-venv: ## Remove virtual environment
 
 install-deps: ## Install dependencies with Poetry
 	@echo "$(YELLOW)Installing dependencies...$(NC)"
-	@poetry install --sync --no-root
+	@$(POETRY) install --sync --no-root
 	@echo "$(GREEN)Dependencies installed!$(NC)"
 
 dev: ## Start development server
 	@echo "$(BLUE)Starting development server...$(NC)"
-	@poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    @$(POETRY) run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 test: ## Run all tests
 	@echo "$(BLUE)Running tests...$(NC)"
-	@poetry run pytest
+	@$(POETRY) run pytest
 
 test-coverage: ## Run tests with coverage report
 	@echo "$(BLUE)Running tests with coverage...$(NC)"
@@ -125,31 +126,31 @@ test-file: ## Run specific test file (usage: make test-file FILE=test_users.py)
 
 ruff: ## Run ruff check and format
 	@echo "$(BLUE)Running ruff check and format...$(NC)"
-	@poetry run ruff check .
-	@poetry run ruff format .
+	@$(POETRY) run ruff check .
+	@$(POETRY) run ruff format .
 
 ruff-check: ## Run ruff check only
 	@echo "$(BLUE)Running ruff check...$(NC)"
-	@poetry run ruff check .
+	@$(POETRY) run ruff check .
 
 ruff-fix: ## Run ruff fix only
 	@echo "$(BLUE)Running ruff fix...$(NC)"
-	@poetry run ruff check --fix .
+	@$(POETRY) run ruff check --fix .
 
 lint: ## Run all linting tools
 	@echo "$(BLUE)Running linting tools...$(NC)"
-	@poetry run ruff check .
-	@poetry run black --check .
-	@poetry run mypy app/
+	@$(POETRY) run ruff check .
+	@$(POETRY) run black --check .
+	@$(POETRY) run mypy app/
 
 type-check: ## Run type checking
 	@echo "$(BLUE)Running type checking...$(NC)"
-	@poetry run mypy app/
+	@$(POETRY) run mypy app/
 
 format: ## Format code
 	@echo "$(BLUE)Formatting code...$(NC)"
-	@poetry run black .
-	@poetry run ruff format .
+	@$(POETRY) run black .
+	@$(POETRY) run ruff format .
 
 check-all: ## Run all checks (lint, type-check, tests)
 	@echo "$(BLUE)Running all checks...$(NC)"
@@ -159,15 +160,15 @@ check-all: ## Run all checks (lint, type-check, tests)
 
 migrate: ## Run database migrations
 	@echo "$(BLUE)Running database migrations...$(NC)"
-	@poetry run alembic upgrade head
+	@$(POETRY) run alembic upgrade head
 
 migrate-up: ## Upgrade to latest migration
 	@echo "$(BLUE)Upgrading to latest migration...$(NC)"
-	@poetry run alembic upgrade head
+	@$(POETRY) run alembic upgrade head
 
 migrate-down: ## Downgrade one migration
 	@echo "$(BLUE)Downgrading one migration...$(NC)"
-	@poetry run alembic downgrade -1
+	@$(POETRY) run alembic downgrade -1
 
 migrate-revision: ## Create new migration (usage: make migrate-revision MESSAGE="add users table")
 	@if [ -z "$(MESSAGE)" ]; then \
@@ -175,11 +176,11 @@ migrate-revision: ## Create new migration (usage: make migrate-revision MESSAGE=
 		exit 1; \
 	fi
 	@echo "$(BLUE)Creating new migration: $(MESSAGE)$(NC)"
-	@poetry run alembic revision --autogenerate -m "$(MESSAGE)"
+	@$(POETRY) run alembic revision --autogenerate -m "$(MESSAGE)"
 
 shell: ## Open Python shell
 	@echo "$(BLUE)Opening Python shell...$(NC)"
-	@poetry run python
+	@$(POETRY) run python
 
 logs: ## Show application logs
 	@echo "$(BLUE)Showing application logs...$(NC)"

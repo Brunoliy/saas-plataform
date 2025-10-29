@@ -120,15 +120,6 @@ def get_current_user_account_type(
     return token_data.account_type
 
 
-def require_any_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> str:
-    """Require any valid user account type and return user ID."""
-    token_data = verify_token(credentials.credentials)
-    check_permissions(token_data.account_type, ["professional", "company"])
-    return token_data.user_id
-
-
 def check_permissions(
     user_account_type: str, required_account_types: list[str]
 ) -> None:

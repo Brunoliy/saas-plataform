@@ -35,6 +35,12 @@ const Header = () => {
                 >
                   Professionals
                 </Link>
+                <Link
+                  to="/companies"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Companies
+                </Link>
                 {user?.account_type === 'admin' && (
                   <Link
                     to="/users"
