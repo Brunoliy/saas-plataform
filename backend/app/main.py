@@ -122,7 +122,9 @@ async def add_process_time_header(request: Request, call_next: Any) -> Any:
 
 
 @app.exception_handler(AuthenticationError)
-async def authentication_exception_handler(request: Request, exc: AuthenticationError) -> JSONResponse:
+async def authentication_exception_handler(
+    request: Request, exc: AuthenticationError
+) -> JSONResponse:
     """Handle authentication exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -138,7 +140,9 @@ async def authentication_exception_handler(request: Request, exc: Authentication
 
 
 @app.exception_handler(AuthorizationError)
-async def authorization_exception_handler(request: Request, exc: AuthorizationError) -> JSONResponse:
+async def authorization_exception_handler(
+    request: Request, exc: AuthorizationError
+) -> JSONResponse:
     """Handle authorization exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -154,7 +158,9 @@ async def authorization_exception_handler(request: Request, exc: AuthorizationEr
 
 
 @app.exception_handler(NotFoundError)
-async def not_found_exception_handler(request: Request, exc: NotFoundError) -> JSONResponse:
+async def not_found_exception_handler(
+    request: Request, exc: NotFoundError
+) -> JSONResponse:
     """Handle not found exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -170,7 +176,9 @@ async def not_found_exception_handler(request: Request, exc: NotFoundError) -> J
 
 
 @app.exception_handler(ConflictError)
-async def conflict_exception_handler(request: Request, exc: ConflictError) -> JSONResponse:
+async def conflict_exception_handler(
+    request: Request, exc: ConflictError
+) -> JSONResponse:
     """Handle conflict exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -186,7 +194,9 @@ async def conflict_exception_handler(request: Request, exc: ConflictError) -> JS
 
 
 @app.exception_handler(SaaSPlatformException)
-async def saas_platform_exception_handler(request: Request, exc: SaaSPlatformException) -> JSONResponse:
+async def saas_platform_exception_handler(
+    request: Request, exc: SaaSPlatformException
+) -> JSONResponse:
     """Handle generic SaaS Platform exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})

@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import AuthenticationError
 from app.database.session import get_db
+from app.repositories.client_repository import ClientRepository
+from app.repositories.professional_repository import ProfessionalRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import RefreshToken, Token, UserLogin
 from app.schemas.user import UserCreate
@@ -16,7 +18,9 @@ router = APIRouter()
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
     """Get auth service dependency."""
     user_repository = UserRepository(db)
-    return AuthService(user_repository)
+    client_repository = ClientRepository(db)
+    professional_repository = ProfessionalRepository(db)
+    return AuthService(user_repository, client_repository, professional_repository)
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)

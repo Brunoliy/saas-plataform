@@ -6,8 +6,13 @@ from uuid import UUID
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from app.models.client import ClientProfile
-from app.schemas.client import ClientProfileCreate, ClientProfileUpdate
+from app.models.client import ClientLink, ClientProfile
+from app.schemas.client import (
+    ClientLinkCreate,
+    ClientLinkUpdate,
+    ClientProfileCreate,
+    ClientProfileUpdate,
+)
 
 
 class ClientRepository:
@@ -23,6 +28,8 @@ class ClientRepository:
             user_id=user_id,
             company_name=profile_data.company_name,
             business_sector=profile_data.business_sector,
+            description=profile_data.description,
+            bio=profile_data.bio,
             average_rating=None,
             total_reviews=0,
         )
@@ -130,3 +137,63 @@ class ClientRepository:
             .limit(limit)
             .all()
         )
+
+    def add_link(self, client_id: UUID, link_data: ClientLinkCreate) -> ClientLink:
+        """Add a social link to client profile."""
+        db_link = ClientLink(
+            client_id=client_id,
+            platform=link_data.platform,
+            url=link_data.url,
+            label=link_data.label,
+        )
+        self.db.add(db_link)
+        self.db.commit()
+        self.db.refresh(db_link)
+        return db_link
+
+    def update_link(
+        self, link_id: UUID, link_update: ClientLinkUpdate
+    ) -> Optional[ClientLink]:
+        """Update a social link."""
+        db_link = (
+            self.db.query(ClientLink)
+            .filter(
+                and_(
+                    ClientLink.id == link_id,
+                    ClientLink.deleted_at.is_(None),
+                )
+            )
+            .first()
+        )
+
+        if not db_link:
+            return None
+
+        update_data = link_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_link, field, value)
+
+        self.db.commit()
+        self.db.refresh(db_link)
+        return db_link
+
+    def remove_link(self, client_id: UUID, link_id: UUID) -> bool:
+        """Remove a social link from client profile."""
+        db_link = (
+            self.db.query(ClientLink)
+            .filter(
+                and_(
+                    ClientLink.id == link_id,
+                    ClientLink.client_id == client_id,
+                    ClientLink.deleted_at.is_(None),
+                )
+            )
+            .first()
+        )
+
+        if not db_link:
+            return False
+
+        db_link.soft_delete()
+        self.db.commit()
+        return True
