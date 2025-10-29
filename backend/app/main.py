@@ -36,6 +36,7 @@ async def lifespan(app: FastAPI):
     init_sentry()  # Initialize Sentry for error tracking
     logger = get_logger("app")
     logger.info("Starting SaaS Platform API")
+    logger.info(f"CORS origins configured", cors_origins=settings.cors_origins)
 
     # Initialize container
     container.config.from_dict(settings.model_dump())
@@ -69,15 +70,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Add middleware
-app.add_middleware(CorrelationIdMiddleware)
+# Add middleware - Order matters! CORS must be first to handle OPTIONS
+# If CORS_ORIGINS is not set or empty, allow all origins (not recommended for production)
+cors_origins = settings.cors_origins if settings.cors_origins else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Process-Time", "X-Correlation-ID"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=["*"],  # Configure appropriately for production
@@ -101,14 +107,15 @@ async def add_process_time_header(request: Request, call_next):
     response.headers["X-Process-Time"] = str(process_time)
     response.headers["X-Correlation-ID"] = correlation_id
 
-    # Log request
-    log_request(
-        logger=logger,
-        method=request.method,
-        path=request.url.path,
-        status_code=response.status_code,
-        duration=process_time,
-    )
+    # Log request (skip OPTIONS logging to reduce noise)
+    if request.method != "OPTIONS":
+        log_request(
+            logger=logger,
+            method=request.method,
+            path=request.url.path,
+            status_code=response.status_code,
+            duration=process_time,
+        )
 
     return response
 

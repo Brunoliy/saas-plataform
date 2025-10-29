@@ -38,7 +38,8 @@ class Settings(BaseSettings):
 
     # CORS
     cors_origins: list[str] = Field(
-        default=["http://localhost:3000", "http://localhost:5173"]
+        default=["http://localhost:3000", "http://localhost:5173"],
+        env="CORS_ORIGINS"
     )
 
     @field_validator("cors_origins", mode="before")
