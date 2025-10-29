@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     init_sentry()  # Initialize Sentry for error tracking
     logger = get_logger("app")
     logger.info("Starting SaaS Platform API")
-    logger.info(f"CORS origins configured", cors_origins=settings.cors_origins)
+    logger.info("CORS origins configured", cors_origins=settings.cors_origins)
 
     # Initialize container
     container.config.from_dict(settings.model_dump())
