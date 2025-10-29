@@ -37,7 +37,10 @@ export interface ProfessionalProfile {
 }
 
 export interface ProfessionalProfileCreate {
+  title: string;
+  description?: string | null;
   bio?: string | null;
+  hourly_rate?: number | null;
 }
 
 export interface ProfessionalProfileUpdate {
@@ -50,6 +53,11 @@ export interface ProfessionalProfileUpdate {
 export const professionalService = {
   async createProfile(data: ProfessionalProfileCreate): Promise<ProfessionalProfile> {
     const response = await apiClient.post<ProfessionalProfile>('/professionals', data);
+    return response.data;
+  },
+
+  async list(params?: { skip?: number; limit?: number }): Promise<{ items: ProfessionalProfile[]; total: number; page: number; size: number; pages: number; }> {
+    const response = await apiClient.get('/professionals', { params });
     return response.data;
   },
 
