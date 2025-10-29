@@ -3,9 +3,14 @@
 from typing import Optional
 from uuid import UUID
 
-from app.models.client import ClientProfile
+from app.models.client import ClientLink, ClientProfile
 from app.repositories.client_repository import ClientRepository
-from app.schemas.client import ClientProfileCreate, ClientProfileUpdate
+from app.schemas.client import (
+    ClientLinkCreate,
+    ClientLinkUpdate,
+    ClientProfileCreate,
+    ClientProfileUpdate,
+)
 
 
 class ClientService:
@@ -68,3 +73,19 @@ class ClientService:
         return self.client_repository.update_rating(
             profile_id, average_rating, total_reviews
         )
+
+    async def add_link(
+        self, client_id: UUID, link_data: ClientLinkCreate
+    ) -> ClientLink:
+        """Add a social link to client profile."""
+        return self.client_repository.add_link(client_id, link_data)
+
+    async def update_link(
+        self, link_id: UUID, link_update: ClientLinkUpdate
+    ) -> Optional[ClientLink]:
+        """Update a social link."""
+        return self.client_repository.update_link(link_id, link_update)
+
+    async def remove_link(self, client_id: UUID, link_id: UUID) -> bool:
+        """Remove a social link from client profile."""
+        return self.client_repository.remove_link(client_id, link_id)
