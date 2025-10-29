@@ -36,6 +36,10 @@ export interface ProfessionalProfile {
   updated_at: string;
 }
 
+export interface ProfessionalProfileCreate {
+  bio?: string | null;
+}
+
 export interface ProfessionalProfileUpdate {
   title?: string;
   description?: string | null;
@@ -44,6 +48,11 @@ export interface ProfessionalProfileUpdate {
 }
 
 export const professionalService = {
+  async createProfile(data: ProfessionalProfileCreate): Promise<ProfessionalProfile> {
+    const response = await apiClient.post<ProfessionalProfile>('/professionals', data);
+    return response.data;
+  },
+
   async getMyProfile(): Promise<ProfessionalProfile> {
     const response = await apiClient.get<ProfessionalProfile>('/professionals/me');
     return response.data;
