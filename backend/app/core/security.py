@@ -120,9 +120,6 @@ def get_current_user_account_type(
     return token_data.account_type
 
 
- 
-
-
 def check_permissions(
     user_account_type: str, required_account_types: list[str]
 ) -> None:

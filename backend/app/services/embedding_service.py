@@ -68,7 +68,7 @@ class EmbeddingService:
                             if isinstance(embedding[0], list):
                                 # Format: [[embedding]]
                                 return embedding[0]
-                            elif isinstance(embedding[0], (int, float)):
+                            elif isinstance(embedding[0], int | float):
                                 # Format: [embedding]
                                 return embedding
 
