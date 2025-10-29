@@ -43,7 +43,7 @@ create-venv-mac: ## Create virtual environment for macOS
 	@echo "$(YELLOW)Setting pyenv local...$(NC)"
 	@pyenv local $(PYTHON_VERSION)
 	@echo "$(YELLOW)Activating virtual environment...$(NC)"
-    @source $(VENV_NAME)/bin/activate && \
+	@source $(VENV_NAME)/bin/activate && \
     echo "$(YELLOW)Upgrading pip...$(NC)" && \
     pip install --upgrade pip && \
     echo "$(YELLOW)Installing Poetry...$(NC)" && \
@@ -101,7 +101,7 @@ clean-venv: ## Remove virtual environment
 
 install-deps: ## Install dependencies with Poetry
 	@echo "$(YELLOW)Installing dependencies...$(NC)"
-    @$(POETRY) install --sync --no-root
+	@$(POETRY) install --sync --no-root
 	@echo "$(GREEN)Dependencies installed!$(NC)"
 
 dev: ## Start development server
@@ -110,7 +110,7 @@ dev: ## Start development server
 
 test: ## Run all tests
 	@echo "$(BLUE)Running tests...$(NC)"
-    @$(POETRY) run pytest
+	@$(POETRY) run pytest
 
 test-coverage: ## Run tests with coverage report
 	@echo "$(BLUE)Running tests with coverage...$(NC)"
@@ -126,31 +126,31 @@ test-file: ## Run specific test file (usage: make test-file FILE=test_users.py)
 
 ruff: ## Run ruff check and format
 	@echo "$(BLUE)Running ruff check and format...$(NC)"
-    @$(POETRY) run ruff check .
-    @$(POETRY) run ruff format .
+	@$(POETRY) run ruff check .
+	@$(POETRY) run ruff format .
 
 ruff-check: ## Run ruff check only
 	@echo "$(BLUE)Running ruff check...$(NC)"
-    @$(POETRY) run ruff check .
+	@$(POETRY) run ruff check .
 
 ruff-fix: ## Run ruff fix only
 	@echo "$(BLUE)Running ruff fix...$(NC)"
-    @$(POETRY) run ruff check --fix .
+	@$(POETRY) run ruff check --fix .
 
 lint: ## Run all linting tools
 	@echo "$(BLUE)Running linting tools...$(NC)"
-    @$(POETRY) run ruff check .
-    @$(POETRY) run black --check .
-    @$(POETRY) run mypy app/
+	@$(POETRY) run ruff check .
+	@$(POETRY) run black --check .
+	@$(POETRY) run mypy app/
 
 type-check: ## Run type checking
 	@echo "$(BLUE)Running type checking...$(NC)"
-    @$(POETRY) run mypy app/
+	@$(POETRY) run mypy app/
 
 format: ## Format code
 	@echo "$(BLUE)Formatting code...$(NC)"
-    @$(POETRY) run black .
-    @$(POETRY) run ruff format .
+	@$(POETRY) run black .
+	@$(POETRY) run ruff format .
 
 check-all: ## Run all checks (lint, type-check, tests)
 	@echo "$(BLUE)Running all checks...$(NC)"
@@ -160,15 +160,15 @@ check-all: ## Run all checks (lint, type-check, tests)
 
 migrate: ## Run database migrations
 	@echo "$(BLUE)Running database migrations...$(NC)"
-    @$(POETRY) run alembic upgrade head
+	@$(POETRY) run alembic upgrade head
 
 migrate-up: ## Upgrade to latest migration
 	@echo "$(BLUE)Upgrading to latest migration...$(NC)"
-    @$(POETRY) run alembic upgrade head
+	@$(POETRY) run alembic upgrade head
 
 migrate-down: ## Downgrade one migration
 	@echo "$(BLUE)Downgrading one migration...$(NC)"
-    @$(POETRY) run alembic downgrade -1
+	@$(POETRY) run alembic downgrade -1
 
 migrate-revision: ## Create new migration (usage: make migrate-revision MESSAGE="add users table")
 	@if [ -z "$(MESSAGE)" ]; then \
@@ -176,11 +176,11 @@ migrate-revision: ## Create new migration (usage: make migrate-revision MESSAGE=
 		exit 1; \
 	fi
 	@echo "$(BLUE)Creating new migration: $(MESSAGE)$(NC)"
-    @$(POETRY) run alembic revision --autogenerate -m "$(MESSAGE)"
+	@$(POETRY) run alembic revision --autogenerate -m "$(MESSAGE)"
 
 shell: ## Open Python shell
 	@echo "$(BLUE)Opening Python shell...$(NC)"
-    @$(POETRY) run python
+	@$(POETRY) run python
 
 logs: ## Show application logs
 	@echo "$(BLUE)Showing application logs...$(NC)"
