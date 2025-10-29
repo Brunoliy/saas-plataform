@@ -69,15 +69,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Add middleware
-app.add_middleware(CorrelationIdMiddleware)
+# Add middleware - Order matters! CORS must be first to handle OPTIONS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.cors_origins if settings.cors_origins else ["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Process-Time", "X-Correlation-ID"],
 )
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=["*"],  # Configure appropriately for production
