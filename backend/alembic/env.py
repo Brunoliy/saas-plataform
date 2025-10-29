@@ -11,9 +11,9 @@ from alembic import context
 # Add the app directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from app.core.config import settings
-from app.database.base import Base
-from app.models import *  # noqa: F403
+from app.core.config import settings  # noqa: E402
+from app.database.base import Base  # noqa: E402
+from app.models import *  # noqa: F403,E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
