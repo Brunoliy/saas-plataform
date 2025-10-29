@@ -46,7 +46,7 @@ async def create_project(
     current_user_id: str = Depends(get_current_user_id),
     project_service: ProjectService = Depends(get_project_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ProjectResponse:
     """Create a new project (only clients can create projects)."""
     try:
         user_uuid = UUID(current_user_id)
@@ -73,7 +73,7 @@ async def list_projects(
     professional_id: Optional[str] = None,
     only_open: bool = False,
     project_service: ProjectService = Depends(get_project_service),
-):
+) -> PaginatedResponse[ProjectResponse]:
     """List projects with pagination and filters (public endpoint)."""
     try:
         if only_open:
@@ -112,7 +112,7 @@ async def list_projects(
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
     project_id: str, project_service: ProjectService = Depends(get_project_service)
-):
+) -> ProjectResponse:
     """Get project by ID (public endpoint)."""
     try:
         project_uuid = UUID(project_id)
@@ -135,7 +135,7 @@ async def update_project(
     current_user_id: str = Depends(get_current_user_id),
     project_service: ProjectService = Depends(get_project_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ProjectResponse:
     """Update project (only owner can update)."""
     try:
         project_uuid = UUID(project_id)
@@ -167,7 +167,7 @@ async def delete_project(
     current_user_id: str = Depends(get_current_user_id),
     project_service: ProjectService = Depends(get_project_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> None:
     """Delete project (only owner can delete)."""
     try:
         project_uuid = UUID(project_id)
@@ -202,7 +202,7 @@ async def assign_professional_to_project(
     current_user_id: str = Depends(get_current_user_id),
     project_service: ProjectService = Depends(get_project_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ProjectResponse:
     """Assign a professional to a project (only project owner can assign)."""
     try:
         project_uuid = UUID(project_id)
@@ -237,7 +237,7 @@ async def complete_project(
     current_user_id: str = Depends(get_current_user_id),
     project_service: ProjectService = Depends(get_project_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ProjectResponse:
     """Mark project as completed (only owner can complete)."""
     try:
         project_uuid = UUID(project_id)
@@ -269,7 +269,7 @@ async def cancel_project(
     current_user_id: str = Depends(get_current_user_id),
     project_service: ProjectService = Depends(get_project_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ProjectResponse:
     """Mark project as cancelled (only owner can cancel)."""
     try:
         project_uuid = UUID(project_id)

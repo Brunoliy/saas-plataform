@@ -22,7 +22,7 @@ def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register(
     user_data: UserCreate, auth_service: AuthService = Depends(get_auth_service)
-):
+) -> Token:
     """Register a new user."""
     try:
         return await auth_service.register(user_data)
@@ -35,7 +35,7 @@ async def register(
 @router.post("/login", response_model=Token)
 async def login(
     user_credentials: UserLogin, auth_service: AuthService = Depends(get_auth_service)
-):
+) -> Token:
     """Login endpoint."""
     try:
         return await auth_service.login(user_credentials)
@@ -47,7 +47,7 @@ async def login(
 async def refresh_token(
     refresh_token_data: RefreshToken,
     auth_service: AuthService = Depends(get_auth_service),
-):
+) -> Token:
     """Refresh access token."""
     try:
         return await auth_service.refresh_token(refresh_token_data.refresh_token)
@@ -56,7 +56,7 @@ async def refresh_token(
 
 
 @router.post("/logout")
-async def logout():
+async def logout() -> dict:
     """Logout endpoint."""
     # Token-based logout is handled client-side by discarding the token
     # For more advanced scenarios, implement token blacklisting here

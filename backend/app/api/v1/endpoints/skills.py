@@ -27,7 +27,7 @@ async def create_skill(
     skill_data: SkillCreate,
     current_user_id: str = Depends(get_current_user_id),
     skill_service: SkillService = Depends(get_skill_service),
-):
+) -> SkillResponse:
     """Create a new skill (authenticated users only)."""
     try:
         return await skill_service.create_skill(skill_data)
@@ -43,7 +43,7 @@ async def list_skills(
     search: Optional[str] = None,
     only_active: bool = True,
     skill_service: SkillService = Depends(get_skill_service),
-):
+) -> PaginatedResponse[SkillResponse]:
     """List skills with pagination and filters (public endpoint)."""
     try:
         if search:
@@ -74,7 +74,7 @@ async def list_skills(
 @router.get("/categories", response_model=list[str])
 async def get_skill_categories(
     skill_service: SkillService = Depends(get_skill_service),
-):
+) -> list[str]:
     """Get all skill categories (public endpoint)."""
     return await skill_service.get_categories()
 
@@ -82,7 +82,7 @@ async def get_skill_categories(
 @router.get("/{skill_id}", response_model=SkillResponse)
 async def get_skill(
     skill_id: str, skill_service: SkillService = Depends(get_skill_service)
-):
+) -> SkillResponse:
     """Get skill by ID (public endpoint)."""
     try:
         skill_uuid = UUID(skill_id)
@@ -104,7 +104,7 @@ async def update_skill(
     skill_update: SkillUpdate,
     current_user_id: str = Depends(get_current_user_id),
     skill_service: SkillService = Depends(get_skill_service),
-):
+) -> SkillResponse:
     """Update skill (authenticated users only)."""
     try:
         skill_uuid = UUID(skill_id)
@@ -126,7 +126,7 @@ async def delete_skill(
     skill_id: str,
     current_user_id: str = Depends(get_current_user_id),
     skill_service: SkillService = Depends(get_skill_service),
-):
+) -> None:
     """Delete skill (authenticated users only)."""
     try:
         skill_uuid = UUID(skill_id)
@@ -150,7 +150,7 @@ async def activate_skill(
     skill_id: str,
     current_user_id: str = Depends(get_current_user_id),
     skill_service: SkillService = Depends(get_skill_service),
-):
+) -> SkillResponse:
     """Activate skill (authenticated users only)."""
     try:
         skill_uuid = UUID(skill_id)
@@ -164,7 +164,7 @@ async def deactivate_skill(
     skill_id: str,
     current_user_id: str = Depends(get_current_user_id),
     skill_service: SkillService = Depends(get_skill_service),
-):
+) -> SkillResponse:
     """Deactivate skill (authenticated users only)."""
     try:
         skill_uuid = UUID(skill_id)

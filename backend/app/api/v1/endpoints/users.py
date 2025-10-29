@@ -29,7 +29,7 @@ def get_user_service(db: Session = Depends(get_db)) -> UserService:
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_data: UserCreate, user_service: UserService = Depends(get_user_service)
-):
+) -> UserResponse:
     """Create a new user."""
     try:
         return user_service.create_user(user_data)
@@ -41,7 +41,7 @@ async def create_user(
 async def get_current_user(
     current_user_id: str = Depends(get_current_user_id),
     user_service: UserService = Depends(get_user_service),
-):
+) -> UserResponse:
     """Get current user information."""
     try:
         print(
@@ -69,7 +69,7 @@ async def update_current_user(
     user_update: UserUpdate,
     current_user_id: str = Depends(get_current_user_id),
     user_service: UserService = Depends(get_user_service),
-):
+) -> UserResponse:
     """Update current user information."""
     try:
         user_uuid = UUID(current_user_id)
@@ -88,7 +88,7 @@ async def list_users(
     limit: int = 20,
     user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
-):
+) -> PaginatedResponse[UserResponse]:
     """List users with pagination (admin only)."""
     require_admin(user_account_type)
     users, total = user_service.list_users(skip=skip, limit=limit)
@@ -106,7 +106,7 @@ async def get_user(
     user_id: str,
     user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
-):
+) -> UserResponse:
     """Get user by ID (admin only)."""
     require_admin(user_account_type)
     try:
@@ -126,7 +126,7 @@ async def update_user(
     user_update: UserUpdate,
     user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
-):
+) -> UserResponse:
     """Update user by ID (admin only)."""
     require_admin(user_account_type)
     try:
@@ -145,7 +145,7 @@ async def delete_user(
     user_id: str,
     user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
-):
+) -> None:
     """Soft delete user by ID (admin only)."""
     require_admin(user_account_type)
     try:
@@ -164,7 +164,7 @@ async def activate_user(
     user_id: str,
     user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
-):
+) -> UserResponse:
     """Activate user by ID (admin only)."""
     require_admin(user_account_type)
     try:
@@ -183,7 +183,7 @@ async def deactivate_user(
     user_id: str,
     user_account_type: str = Depends(get_current_user_account_type),
     user_service: UserService = Depends(get_user_service),
-):
+) -> UserResponse:
     """Deactivate user by ID (admin only)."""
     require_admin(user_account_type)
     try:
