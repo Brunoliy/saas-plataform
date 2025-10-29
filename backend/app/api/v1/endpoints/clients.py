@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+
 from app.core.security import get_current_user_id
 from app.database.session import get_db
 from app.repositories.client_repository import ClientRepository
@@ -33,7 +34,7 @@ async def create_client_profile(
     profile_data: ClientProfileCreate,
     current_user_id: str = Depends(get_current_user_id),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ClientProfileResponse:
     """Create a new client profile."""
     try:
         user_uuid = UUID(current_user_id)
@@ -48,7 +49,7 @@ async def list_clients(
     limit: int = 20,
     business_sector: Optional[str] = None,
     client_service: ClientService = Depends(get_client_service),
-):
+) -> PaginatedResponse[ClientProfileResponse]:
     """List clients with pagination (public endpoint)."""
     if business_sector:
         clients = await client_service.get_clients_by_sector(
@@ -71,7 +72,7 @@ async def list_clients(
 async def get_my_client_profile(
     current_user_id: str = Depends(get_current_user_id),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ClientProfileResponse:
     """Get current user's client profile."""
     try:
         user_uuid = UUID(current_user_id)
@@ -92,7 +93,7 @@ async def update_my_client_profile(
     profile_update: ClientProfileUpdate,
     current_user_id: str = Depends(get_current_user_id),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ClientProfileResponse:
     """Update current user's client profile."""
     try:
         user_uuid = UUID(current_user_id)
@@ -111,7 +112,7 @@ async def update_my_client_profile(
 @router.get("/{client_id}", response_model=ClientProfileResponse)
 async def get_client(
     client_id: str, client_service: ClientService = Depends(get_client_service)
-):
+) -> ClientProfileResponse:
     """Get client by ID (public endpoint)."""
     try:
         client_uuid = UUID(client_id)
@@ -132,7 +133,7 @@ async def delete_client_profile(
     client_id: str,
     current_user_id: str = Depends(get_current_user_id),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> None:
     """Delete client profile (only owner can delete)."""
     try:
         profile_uuid = UUID(client_id)

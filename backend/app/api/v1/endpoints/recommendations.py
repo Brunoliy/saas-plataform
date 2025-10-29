@@ -28,7 +28,7 @@ async def get_professional_recommendations_for_project(
     project_id: UUID,
     limit: int = Query(default=10, ge=1, le=50),
     ai_service: AIService = Depends(get_ai_service),
-):
+) -> dict:
     """
     Get AI-powered professional recommendations for a project.
 
@@ -74,7 +74,7 @@ async def get_project_recommendations_for_professional(
     professional_id: UUID,
     limit: int = Query(default=10, ge=1, le=50),
     ai_service: AIService = Depends(get_ai_service),
-):
+) -> dict:
     """
     Get AI-powered project recommendations for a professional.
 
@@ -120,7 +120,7 @@ async def calculate_compatibility(
     project_id: UUID,
     professional_id: UUID,
     ai_service: AIService = Depends(get_ai_service),
-):
+) -> dict:
     """
     Calculate compatibility score between a project and a professional.
 
@@ -156,7 +156,7 @@ async def get_my_recommended_projects(
     current_user_id: str = Depends(get_current_user_id),
     ai_service: AIService = Depends(get_ai_service),
     db: Session = Depends(get_db),
-):
+) -> dict:
     """
     Get personalized project recommendations for the current professional.
 
@@ -205,7 +205,7 @@ async def get_my_recommended_projects(
 async def get_analysis(
     analysis_id: UUID,
     ai_service: AIService = Depends(get_ai_service),
-):
+) -> dict:
     """Get AI analysis by ID."""
     analysis = await ai_service.get_analysis_by_id(analysis_id)
 

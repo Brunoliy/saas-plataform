@@ -41,7 +41,7 @@ async def create_review(
     review_data: ReviewCreate,
     current_user_id: str = Depends(get_current_user_id),
     review_service: ReviewService = Depends(get_review_service),
-):
+) -> ReviewResponse:
     """Create a new review (authenticated users only)."""
     try:
         user_uuid = UUID(current_user_id)
@@ -59,7 +59,7 @@ async def list_reviews(
     reviewed_id: Optional[str] = None,
     review_type: Optional[ReviewType] = None,
     review_service: ReviewService = Depends(get_review_service),
-):
+) -> PaginatedResponse[ReviewResponse]:
     """List reviews with pagination and filters (public endpoint)."""
     try:
         if project_id:
@@ -101,7 +101,7 @@ async def list_reviews(
 @router.get("/users/{user_id}/rating")
 async def get_user_rating(
     user_id: str, review_service: ReviewService = Depends(get_review_service)
-):
+) -> dict:
     """Get average rating for a user (public endpoint)."""
     try:
         user_uuid = UUID(user_id)
@@ -118,7 +118,7 @@ async def get_user_rating(
 @router.get("/{review_id}", response_model=ReviewResponse)
 async def get_review(
     review_id: str, review_service: ReviewService = Depends(get_review_service)
-):
+) -> ReviewResponse:
     """Get review by ID (public endpoint)."""
     try:
         review_uuid = UUID(review_id)
@@ -140,7 +140,7 @@ async def update_review(
     review_update: ReviewUpdate,
     current_user_id: str = Depends(get_current_user_id),
     review_service: ReviewService = Depends(get_review_service),
-):
+) -> ReviewResponse:
     """Update review (only reviewer can update)."""
     try:
         review_uuid = UUID(review_id)
@@ -170,7 +170,7 @@ async def delete_review(
     review_id: str,
     current_user_id: str = Depends(get_current_user_id),
     review_service: ReviewService = Depends(get_review_service),
-):
+) -> None:
     """Delete review (only reviewer can delete)."""
     try:
         review_uuid = UUID(review_id)

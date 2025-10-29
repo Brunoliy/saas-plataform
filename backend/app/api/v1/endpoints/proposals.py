@@ -56,7 +56,7 @@ async def create_proposal(
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProposalResponse:
     """Create a new proposal (only professionals can create proposals)."""
     try:
         user_uuid = UUID(current_user_id)
@@ -87,7 +87,7 @@ async def list_proposals(
     status_filter: Optional[ProposalStatus] = None,
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
-):
+) -> PaginatedResponse[ProposalResponse]:
     """List proposals with pagination and filters (authenticated endpoint)."""
     try:
         if project_id:
@@ -126,7 +126,7 @@ async def get_proposal(
     proposal_id: str,
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
-):
+) -> ProposalResponse:
     """Get proposal by ID (authenticated endpoint)."""
     try:
         proposal_uuid = UUID(proposal_id)
@@ -149,7 +149,7 @@ async def update_proposal(
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProposalResponse:
     """Update proposal (only proposal owner can update)."""
     try:
         proposal_uuid = UUID(proposal_id)
@@ -186,7 +186,7 @@ async def delete_proposal(
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> None:
     """Delete proposal (only proposal owner can delete)."""
     try:
         proposal_uuid = UUID(proposal_id)
@@ -223,7 +223,7 @@ async def accept_proposal(
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ProposalResponse:
     """Accept a proposal (only project owner can accept)."""
     try:
         proposal_uuid = UUID(proposal_id)
@@ -267,7 +267,7 @@ async def reject_proposal(
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
     client_service: ClientService = Depends(get_client_service),
-):
+) -> ProposalResponse:
     """Reject a proposal (only project owner can reject)."""
     try:
         proposal_uuid = UUID(proposal_id)

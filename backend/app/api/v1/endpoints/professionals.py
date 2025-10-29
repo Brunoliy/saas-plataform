@@ -39,7 +39,7 @@ async def create_professional_profile(
     profile_data: ProfessionalProfileCreate,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProfessionalProfileResponse:
     """Create a new professional profile."""
     try:
         user_uuid = UUID(current_user_id)
@@ -53,7 +53,7 @@ async def list_professionals(
     skip: int = 0,
     limit: int = 20,
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> PaginatedResponse[ProfessionalProfileResponse]:
     """List professionals with pagination (public endpoint)."""
     professionals = await professional_service.list_professionals(
         skip=skip, limit=limit
@@ -72,7 +72,7 @@ async def list_professionals(
 async def get_my_professional_profile(
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProfessionalProfileResponse:
     """Get current user's professional profile."""
     try:
         user_uuid = UUID(current_user_id)
@@ -94,7 +94,7 @@ async def update_my_professional_profile(
     profile_update: ProfessionalProfileUpdate,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProfessionalProfileResponse:
     """Update current user's professional profile."""
     try:
         user_uuid = UUID(current_user_id)
@@ -115,7 +115,7 @@ async def update_my_professional_profile(
 async def get_professional(
     professional_id: str,
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProfessionalProfileResponse:
     """Get professional by ID (public endpoint)."""
     try:
         profile_uuid = UUID(professional_id)
@@ -138,7 +138,7 @@ async def delete_professional_profile(
     professional_id: str,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> None:
     """Delete professional profile (only owner can delete)."""
     try:
         profile_uuid = UUID(professional_id)
@@ -175,7 +175,7 @@ async def add_skill_to_professional(
     skill_data: ProfessionalSkillCreate,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProfessionalSkillResponse:
     """Add a skill to professional profile."""
     try:
         profile_uuid = UUID(professional_id)
@@ -208,7 +208,7 @@ async def remove_skill_from_professional(
     skill_id: str,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> None:
     """Remove a skill from professional profile."""
     try:
         profile_uuid = UUID(professional_id)
@@ -251,7 +251,7 @@ async def add_link_to_professional(
     link_data: ProfessionalLinkCreate,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProfessionalLinkResponse:
     """Add a social link to professional profile."""
     try:
         profile_uuid = UUID(professional_id)
@@ -286,7 +286,7 @@ async def update_professional_link(
     link_update: ProfessionalLinkUpdate,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> ProfessionalLinkResponse:
     """Update a social link."""
     try:
         profile_uuid = UUID(professional_id)
@@ -326,7 +326,7 @@ async def remove_link_from_professional(
     link_id: str,
     current_user_id: str = Depends(get_current_user_id),
     professional_service: ProfessionalService = Depends(get_professional_service),
-):
+) -> None:
     """Remove a social link from professional profile."""
     try:
         profile_uuid = UUID(professional_id)

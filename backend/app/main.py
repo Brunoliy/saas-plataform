@@ -2,6 +2,7 @@
 
 import time
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,7 +30,7 @@ from app.core.sentry import init_sentry
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> None:
     """Application lifespan manager."""
     # Startup
     setup_logging()
@@ -91,7 +92,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
+async def add_process_time_header(request: Request, call_next: Any) -> Any:
     """Add processing time header to response."""
     start_time = time.time()
 
@@ -121,7 +122,7 @@ async def add_process_time_header(request: Request, call_next):
 
 
 @app.exception_handler(AuthenticationError)
-async def authentication_exception_handler(request: Request, exc: AuthenticationError):
+async def authentication_exception_handler(request: Request, exc: AuthenticationError) -> JSONResponse:
     """Handle authentication exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -137,7 +138,7 @@ async def authentication_exception_handler(request: Request, exc: Authentication
 
 
 @app.exception_handler(AuthorizationError)
-async def authorization_exception_handler(request: Request, exc: AuthorizationError):
+async def authorization_exception_handler(request: Request, exc: AuthorizationError) -> JSONResponse:
     """Handle authorization exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -153,7 +154,7 @@ async def authorization_exception_handler(request: Request, exc: AuthorizationEr
 
 
 @app.exception_handler(NotFoundError)
-async def not_found_exception_handler(request: Request, exc: NotFoundError):
+async def not_found_exception_handler(request: Request, exc: NotFoundError) -> JSONResponse:
     """Handle not found exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -169,7 +170,7 @@ async def not_found_exception_handler(request: Request, exc: NotFoundError):
 
 
 @app.exception_handler(ConflictError)
-async def conflict_exception_handler(request: Request, exc: ConflictError):
+async def conflict_exception_handler(request: Request, exc: ConflictError) -> JSONResponse:
     """Handle conflict exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -185,7 +186,7 @@ async def conflict_exception_handler(request: Request, exc: ConflictError):
 
 
 @app.exception_handler(SaaSPlatformException)
-async def saas_platform_exception_handler(request: Request, exc: SaaSPlatformException):
+async def saas_platform_exception_handler(request: Request, exc: SaaSPlatformException) -> JSONResponse:
     """Handle generic SaaS Platform exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -201,7 +202,7 @@ async def saas_platform_exception_handler(request: Request, exc: SaaSPlatformExc
 
 
 @app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle general exceptions."""
     logger = get_logger("app")
     log_error(logger, exc, {"path": request.url.path})
@@ -221,7 +222,7 @@ app.include_router(api_router, prefix=settings.api_prefix)
 
 
 @app.get("/")
-async def root():
+async def root() -> dict:
     """Root endpoint."""
     return {
         "message": "SaaS Platform API",
@@ -232,7 +233,7 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> dict:
     """Health check endpoint."""
     return {"status": "healthy", "timestamp": time.time()}
 
