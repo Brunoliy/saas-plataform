@@ -22,6 +22,20 @@ export interface ProfessionalLinkUpdate {
   label?: string | null;
 }
 
+export interface ProfessionalSkill {
+  id: string;
+  professional_id: string;
+  skill_id: string;
+  proficiency_level: number;
+  years_experience: number | null;
+  certified: number;
+  skill?: {
+    id: string;
+    name: string;
+    category: string;
+  };
+}
+
 export interface ProfessionalProfile {
   id: string;
   user_id: string;
@@ -31,7 +45,8 @@ export interface ProfessionalProfile {
   hourly_rate: number | null;
   average_rating: number | null;
   total_reviews: number;
-  links: ProfessionalLink[];
+  links?: ProfessionalLink[];
+  skills?: ProfessionalSkill[];
   created_at: string;
   updated_at: string;
 }
@@ -68,6 +83,11 @@ export const professionalService = {
 
   async updateMyProfile(data: ProfessionalProfileUpdate): Promise<ProfessionalProfile> {
     const response = await apiClient.put<ProfessionalProfile>('/professionals/me', data);
+    return response.data;
+  },
+
+  async getById(id: string): Promise<ProfessionalProfile> {
+    const response = await apiClient.get<ProfessionalProfile>(`/professionals/${id}`);
     return response.data;
   },
 
