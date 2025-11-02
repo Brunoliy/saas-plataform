@@ -1,5 +1,7 @@
 """Test proposal (application) endpoints and functionality."""
 
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -15,11 +17,12 @@ from tests.factories import (
     set_sqlalchemy_session,
 )
 
-# Create test database
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+# Create test database - Use PostgreSQL for JSONB support
+
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/saas_platform_test"
 )
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
