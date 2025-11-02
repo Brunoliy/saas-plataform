@@ -2,12 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from app.database.base import Base
-from app.database.session import get_db
-from app.main import app
 from tests.factories import (
     ClientProfileFactory,
     ProfessionalProfileFactory,
@@ -16,44 +11,17 @@ from tests.factories import (
     set_sqlalchemy_session,
 )
 
-# Create test database
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    """Override database dependency for testing."""
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
 
 @pytest.fixture(scope="function")
-def db_session():
-    """Create a new database session for each test."""
-    Base.metadata.create_all(bind=engine)
-    session = TestingSessionLocal()
-    set_sqlalchemy_session(session)
-    yield session
-    session.close()
-    Base.metadata.drop_all(bind=engine)
+def db_session_with_factories(db_session):
+    """Set up database session with factory_boy."""
+    set_sqlalchemy_session(db_session)
+    yield db_session
 
 
-@pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
-
-
-def test_create_review_client_to_professional(db_session, client: TestClient):
+def test_create_review_client_to_professional(
+    db_session_with_factories, client: TestClient
+):
     """Test company giving feedback to professional."""
     # Create completed project with professional
     client_profile = ClientProfileFactory()
@@ -63,7 +31,7 @@ def test_create_review_client_to_professional(db_session, client: TestClient):
         selected_professional_id=professional.id,
         status="COMPLETED",
     )
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/reviews/",
@@ -84,7 +52,9 @@ def test_create_review_client_to_professional(db_session, client: TestClient):
     assert data["review_type"] == "client_to_professional"
 
 
-def test_create_review_professional_to_client(db_session, client: TestClient):
+def test_create_review_professional_to_client(
+    db_session_with_factories, client: TestClient
+):
     """Test professional giving feedback to company."""
     client_profile = ClientProfileFactory()
     professional = ProfessionalProfileFactory()
@@ -93,7 +63,7 @@ def test_create_review_professional_to_client(db_session, client: TestClient):
         selected_professional_id=professional.id,
         status="COMPLETED",
     )
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/reviews/",
@@ -112,11 +82,11 @@ def test_create_review_professional_to_client(db_session, client: TestClient):
     assert data["review_type"] == "professional_to_client"
 
 
-def test_review_rating_validation(db_session, client: TestClient):
+def test_review_rating_validation(db_session_with_factories, client: TestClient):
     """Test that rating must be between 1 and 5."""
     project = ProjectFactory(status="COMPLETED")
     professional = ProfessionalProfileFactory()
-    db_session.commit()
+    db_session_with_factories.commit()
 
     # Test rating > 5
     response = client.post(
@@ -143,7 +113,7 @@ def test_review_rating_validation(db_session, client: TestClient):
     assert response.status_code == 422
 
 
-def test_review_comment_optional(db_session, client: TestClient):
+def test_review_comment_optional(db_session_with_factories, client: TestClient):
     """Test that comment is optional in reviews."""
     client_profile = ClientProfileFactory()
     professional = ProfessionalProfileFactory()
@@ -152,7 +122,7 @@ def test_review_comment_optional(db_session, client: TestClient):
         selected_professional_id=professional.id,
         status="COMPLETED",
     )
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/reviews/",
@@ -171,12 +141,12 @@ def test_review_comment_optional(db_session, client: TestClient):
     assert data["comment"] is None
 
 
-def test_list_reviews_by_reviewed_user(db_session, client: TestClient):
+def test_list_reviews_by_reviewed_user(db_session_with_factories, client: TestClient):
     """Test listing all reviews for a specific user (professional or company)."""
     professional = ProfessionalProfileFactory()
     # Create 3 reviews for this professional
     _ = [ReviewFactory(reviewed=professional.user, rating=i) for i in range(3, 6)]
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.get(f"/api/v1/reviews/?reviewed_id={professional.user_id}")
 
@@ -185,11 +155,11 @@ def test_list_reviews_by_reviewed_user(db_session, client: TestClient):
     assert len(data["items"]) == 3
 
 
-def test_list_reviews_by_project(db_session, client: TestClient):
+def test_list_reviews_by_project(db_session_with_factories, client: TestClient):
     """Test listing all reviews for a specific project."""
     project = ProjectFactory(status="COMPLETED")
     _ = [ReviewFactory(project=project) for _ in range(2)]
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.get(f"/api/v1/reviews/?project_id={project.id}")
 
@@ -198,7 +168,9 @@ def test_list_reviews_by_project(db_session, client: TestClient):
     assert len(data["items"]) == 2
 
 
-def test_get_average_rating_for_professional(db_session, client: TestClient):
+def test_get_average_rating_for_professional(
+    db_session_with_factories, client: TestClient
+):
     """Test calculating average rating for a professional."""
     professional = ProfessionalProfileFactory()
     # Create reviews with ratings 3, 4, 5 (average = 4.0)
@@ -207,7 +179,7 @@ def test_get_average_rating_for_professional(db_session, client: TestClient):
         ReviewFactory(reviewed=professional.user, rating=4),
         ReviewFactory(reviewed=professional.user, rating=5),
     ]
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.get(f"/api/v1/reviews/users/{professional.user_id}/rating")
 
@@ -218,7 +190,7 @@ def test_get_average_rating_for_professional(db_session, client: TestClient):
     assert data["average_rating"] == pytest.approx(4.0, rel=0.1)
 
 
-def test_get_average_rating_for_company(db_session, client: TestClient):
+def test_get_average_rating_for_company(db_session_with_factories, client: TestClient):
     """Test calculating average rating for a company."""
     company = ClientProfileFactory()
     # Create reviews with ratings 4, 5, 5 (average = 4.67)
@@ -227,7 +199,7 @@ def test_get_average_rating_for_company(db_session, client: TestClient):
         ReviewFactory(reviewed=company.user, rating=5),
         ReviewFactory(reviewed=company.user, rating=5),
     ]
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.get(f"/api/v1/reviews/users/{company.user_id}/rating")
 
@@ -238,11 +210,13 @@ def test_get_average_rating_for_company(db_session, client: TestClient):
     assert data["average_rating"] == pytest.approx(4.67, rel=0.1)
 
 
-def test_review_only_for_completed_projects(db_session, client: TestClient):
+def test_review_only_for_completed_projects(
+    db_session_with_factories, client: TestClient
+):
     """Test that reviews can only be created for COMPLETED projects."""
     project = ProjectFactory(status="IN_PROGRESS")
     professional = ProfessionalProfileFactory()
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/reviews/",
@@ -258,10 +232,10 @@ def test_review_only_for_completed_projects(db_session, client: TestClient):
     assert response.status_code in [400, 403]
 
 
-def test_update_review(db_session, client: TestClient):
+def test_update_review(db_session_with_factories, client: TestClient):
     """Test updating an existing review."""
     review = ReviewFactory(rating=3, comment="Initial comment")
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.put(
         f"/api/v1/reviews/{review.id}",
@@ -274,10 +248,10 @@ def test_update_review(db_session, client: TestClient):
     assert data["comment"] == "Updated comment - much better!"
 
 
-def test_delete_review(db_session, client: TestClient):
+def test_delete_review(db_session_with_factories, client: TestClient):
     """Test deleting a review."""
     review = ReviewFactory()
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.delete(f"/api/v1/reviews/{review.id}")
 

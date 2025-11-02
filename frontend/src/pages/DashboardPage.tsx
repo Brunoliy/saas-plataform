@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { professionalService, ProfessionalProfile } from '@/services/professionalService'
 import { projectService } from '@/services/projectService'
@@ -31,15 +31,7 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (user?.account_type === 'professional') {
-      loadDashboardData()
-    } else {
-      setIsLoading(false)
-    }
-  }, [user])
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -61,10 +53,11 @@ const DashboardPage = () => {
       const calculatedStats = calculateStats(projectsData, proposalsData, profile)
       setStats(calculatedStats)
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to load dashboard data:', error)
 
-      if (error.response?.status === 404) {
+      if (error && typeof error === 'object' && 'response' in error &&
+          (error as { response?: { status?: number } }).response?.status === 404) {
         setError('Professional profile not found. Please create your profile first.')
       } else {
         setError('Failed to load dashboard data. Please try again.')
@@ -73,7 +66,15 @@ const DashboardPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (user?.account_type === 'professional') {
+      loadDashboardData()
+    } else {
+      setIsLoading(false)
+    }
+  }, [user, loadDashboardData])
 
   const calculateStats = (
     projects: Project[],

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { clientService, ClientProfile } from '@/services/clientService'
@@ -24,15 +24,7 @@ const CompanyDetailPage = () => {
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
 
-  useEffect(() => {
-    if (id) {
-      loadCompany()
-      loadProjects()
-      loadReviews()
-    }
-  }, [id])
-
-  const loadCompany = async () => {
+  const loadCompany = useCallback(async () => {
     try {
       setIsLoading(true)
       const data = await clientService.getById(id!)
@@ -44,9 +36,9 @@ const CompanyDetailPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [id, navigate])
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       setIsLoadingProjects(true)
       const data = await projectService.getProjects({
@@ -59,9 +51,9 @@ const CompanyDetailPage = () => {
     } finally {
       setIsLoadingProjects(false)
     }
-  }
+  }, [id])
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       setIsLoadingReviews(true)
       // Get reviews for company (where they were reviewed)
@@ -75,7 +67,15 @@ const CompanyDetailPage = () => {
     } finally {
       setIsLoadingReviews(false)
     }
-  }
+  }, [id, company])
+
+  useEffect(() => {
+    if (id) {
+      loadCompany()
+      loadProjects()
+      loadReviews()
+    }
+  }, [id, loadCompany, loadProjects, loadReviews])
 
   const handleSubmitReview = async (reviewData: ReviewCreate) => {
     await reviewService.createReview(reviewData)

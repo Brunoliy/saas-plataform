@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { projectService } from '@/services/projectService'
@@ -28,15 +28,7 @@ const ProjectDetailPage = () => {
   const [isSubmittingProposal, setIsSubmittingProposal] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
 
-  useEffect(() => {
-    if (id) {
-      loadProject()
-      loadReviews()
-      checkIfApplied()
-    }
-  }, [id])
-
-  const checkIfApplied = async () => {
+  const checkIfApplied = useCallback(async () => {
     if (!user || !id) return
 
     try {
@@ -53,9 +45,9 @@ const ProjectDetailPage = () => {
       // User might not have a professional profile
       console.log('Could not check proposal status:', error)
     }
-  }
+  }, [id, user])
 
-  const loadProject = async () => {
+  const loadProject = useCallback(async () => {
     try {
       setIsLoading(true)
       const data = await projectService.getProjectById(id!)
@@ -67,9 +59,9 @@ const ProjectDetailPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [id, navigate])
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       setIsLoadingReviews(true)
       const data = await reviewService.getReviews({ project_id: id!, limit: 100 })
@@ -79,7 +71,15 @@ const ProjectDetailPage = () => {
     } finally {
       setIsLoadingReviews(false)
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (id) {
+      loadProject()
+      loadReviews()
+      checkIfApplied()
+    }
+  }, [id, loadProject, loadReviews, checkIfApplied])
 
   const handleSubmitReview = async (reviewData: ReviewCreate) => {
     await reviewService.createReview(reviewData)
@@ -110,9 +110,12 @@ const ProjectDetailPage = () => {
       setProposalAmount('')
       setProposalDays('')
       setHasApplied(true)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to submit proposal:', error)
-      toast.error(error.response?.data?.detail || 'Failed to submit proposal')
+      const errorMessage = (error && typeof error === 'object' && 'response' in error &&
+        (error as { response?: { data?: { detail?: string } } }).response?.data?.detail) ||
+        'Failed to submit proposal'
+      toast.error(String(errorMessage))
     } finally {
       setIsSubmittingProposal(false)
     }

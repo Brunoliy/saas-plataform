@@ -2,12 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from app.database.base import Base
-from app.database.session import get_db
-from app.main import app
 from tests.factories import (
     ProfessionalProfileFactory,
     ProjectFactory,
@@ -15,49 +10,20 @@ from tests.factories import (
     set_sqlalchemy_session,
 )
 
-# Create test database
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    """Override database dependency for testing."""
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
 
 @pytest.fixture(scope="function")
-def db_session():
-    """Create a new database session for each test."""
-    Base.metadata.create_all(bind=engine)
-    session = TestingSessionLocal()
-    set_sqlalchemy_session(session)
-    yield session
-    session.close()
-    Base.metadata.drop_all(bind=engine)
+def db_session_with_factories(db_session):
+    """Set up database session with factory_boy."""
+    set_sqlalchemy_session(db_session)
+    yield db_session
 
 
-@pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
-
-
-def test_create_proposal_success(db_session, client: TestClient):
+def test_create_proposal_success(db_session_with_factories, client: TestClient):
     """Test successful proposal creation (professional applying to project)."""
     # Create professional and open project
     professional = ProfessionalProfileFactory()
     project = ProjectFactory(status="OPEN")
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/proposals/",
@@ -78,10 +44,10 @@ def test_create_proposal_success(db_session, client: TestClient):
     assert data["status"] == "SUBMITTED"
 
 
-def test_create_proposal_duplicate(db_session, client: TestClient):
+def test_create_proposal_duplicate(db_session_with_factories, client: TestClient):
     """Test that professional cannot apply to same project twice."""
     proposal = ProposalFactory()
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/proposals/",
@@ -97,10 +63,10 @@ def test_create_proposal_duplicate(db_session, client: TestClient):
     assert response.status_code in [400, 409]
 
 
-def test_accept_proposal(db_session, client: TestClient):
+def test_accept_proposal(db_session_with_factories, client: TestClient):
     """Test company accepting a proposal."""
     proposal = ProposalFactory(status="SUBMITTED")
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(f"/api/v1/proposals/{proposal.id}/accept")
 
@@ -110,10 +76,10 @@ def test_accept_proposal(db_session, client: TestClient):
     assert data["id"] == str(proposal.id)
 
 
-def test_reject_proposal(db_session, client: TestClient):
+def test_reject_proposal(db_session_with_factories, client: TestClient):
     """Test company rejecting a proposal."""
     proposal = ProposalFactory(status="SUBMITTED")
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(f"/api/v1/proposals/{proposal.id}/reject")
 
@@ -122,11 +88,11 @@ def test_reject_proposal(db_session, client: TestClient):
     assert data["status"] == "REJECTED"
 
 
-def test_list_proposals_by_project(db_session, client: TestClient):
+def test_list_proposals_by_project(db_session_with_factories, client: TestClient):
     """Test listing all proposals for a specific project."""
     project = ProjectFactory(status="OPEN")
     _ = [ProposalFactory(project=project) for _ in range(3)]
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.get(f"/api/v1/proposals/?project_id={project.id}")
 
@@ -135,11 +101,11 @@ def test_list_proposals_by_project(db_session, client: TestClient):
     assert len(data["items"]) == 3
 
 
-def test_list_proposals_by_professional(db_session, client: TestClient):
+def test_list_proposals_by_professional(db_session_with_factories, client: TestClient):
     """Test listing all proposals by a specific professional."""
     professional = ProfessionalProfileFactory()
     _ = [ProposalFactory(professional=professional) for _ in range(2)]
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.get(f"/api/v1/proposals/?professional_id={professional.id}")
 
@@ -148,10 +114,10 @@ def test_list_proposals_by_professional(db_session, client: TestClient):
     assert len(data["items"]) == 2
 
 
-def test_proposal_amount_validation(db_session, client: TestClient):
+def test_proposal_amount_validation(db_session_with_factories, client: TestClient):
     """Test that proposal amount must be positive."""
     project = ProjectFactory(status="OPEN")
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/proposals/",
@@ -165,10 +131,10 @@ def test_proposal_amount_validation(db_session, client: TestClient):
     assert response.status_code == 422  # Validation error
 
 
-def test_proposal_only_for_open_projects(db_session, client: TestClient):
+def test_proposal_only_for_open_projects(db_session_with_factories, client: TestClient):
     """Test that proposals can only be created for OPEN projects."""
     project = ProjectFactory(status="COMPLETED")
-    db_session.commit()
+    db_session_with_factories.commit()
 
     response = client.post(
         "/api/v1/proposals/",

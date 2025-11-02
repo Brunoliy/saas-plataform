@@ -14,7 +14,7 @@ const ProfessionalsPage = () => {
         setError(null)
         const data = await professionalService.list({ skip: 0, limit: 20 })
         setItems(data.items)
-      } catch (e: any) {
+      } catch (e) {
         setError('Failed to load professionals')
         console.error(e)
       } finally {

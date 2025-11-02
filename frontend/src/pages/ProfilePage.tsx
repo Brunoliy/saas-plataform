@@ -24,10 +24,11 @@ const ProfilePage = () => {
       const profile = await professionalService.getMyProfile()
       setProfessionalProfile(profile)
       setBio(profile.bio || '')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to load professional profile:', error)
       // If 404, profile doesn't exist yet - that's ok, we'll show create button
-      if (error.response?.status !== 404) {
+      if (error && typeof error === 'object' && 'response' in error &&
+          (error as { response?: { status?: number } }).response?.status !== 404) {
         toast.error('Failed to load professional profile')
       }
       setProfessionalProfile(null)

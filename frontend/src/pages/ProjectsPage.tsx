@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { projectService, PaginatedProjects } from '@/services/projectService'
@@ -21,11 +21,7 @@ const ProjectsPage = () => {
     deadline: null,
   })
 
-  useEffect(() => {
-    loadProjects()
-  }, [statusFilter])
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       setIsLoading(true)
       const filters = statusFilter !== 'ALL' ? { status: statusFilter } : {}
@@ -37,7 +33,11 @@ const ProjectsPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [statusFilter])
+
+  useEffect(() => {
+    loadProjects()
+  }, [statusFilter, loadProjects])
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault()
