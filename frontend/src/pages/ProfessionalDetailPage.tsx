@@ -7,7 +7,7 @@ import { reviewService } from '@/services/reviewService'
 import { Project } from '@/types/project'
 import { Review, ReviewCreate } from '@/types/review'
 import { toast } from 'react-hot-toast'
-import { ArrowLeft, User, Star, Briefcase, DollarSign, Mail, Link as LinkIcon } from 'lucide-react'
+import { ArrowLeft, Star, Briefcase, DollarSign, Link as LinkIcon } from 'lucide-react'
 import ReviewForm from '@/components/ReviewForm'
 import ReviewList from '@/components/ReviewList'
 
