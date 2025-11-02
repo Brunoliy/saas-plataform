@@ -64,6 +64,10 @@ jobs:
         poetry run ruff format --check .
 
     - name: Run tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/saas_platform_test
+        JWT_SECRET_KEY: test-secret-key-for-ci-only-min-32-chars
+        REDIS_URL: redis://localhost:6379/0
       run: |
         cd backend
         poetry run pytest --cov=app --cov-report=xml --cov-report=html
