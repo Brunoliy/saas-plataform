@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserService } from '../services/userService';
 import { User, PaginatedResponse } from '../types/user';
@@ -23,7 +23,7 @@ const UsersPage: React.FC = () => {
     pages: 0,
   });
 
-  const fetchUsers = async (page: number = 1) => {
+  const fetchUsers = useCallback(async (page: number = 1) => {
     try {
       setLoading(true);
       const response: PaginatedResponse<User> = await UserService.getUsers(page, pagination.size);
@@ -40,7 +40,7 @@ const UsersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.size]);
 
   useEffect(() => {
     // Check if user is admin
@@ -51,7 +51,7 @@ const UsersPage: React.FC = () => {
     }
 
     fetchUsers();
-  }, [user, navigate]);
+  }, [user, navigate, fetchUsers]);
 
   const handleDeleteUser = async (userId: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este usuário?')) {

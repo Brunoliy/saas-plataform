@@ -54,10 +54,12 @@ const RegisterPage = () => {
 
       toast.success('Account created successfully!')
       navigate('/dashboard')
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || 'Failed to create account. Please try again.'
-      setError(errorMessage)
-      toast.error(errorMessage)
+    } catch (err) {
+      const errorMessage = (err && typeof err === 'object' && 'response' in err &&
+        (err as { response?: { data?: { detail?: string } } }).response?.data?.detail) ||
+        'Failed to create account. Please try again.'
+      setError(String(errorMessage))
+      toast.error(String(errorMessage))
     } finally {
       setIsLoading(false)
     }

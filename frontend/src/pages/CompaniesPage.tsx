@@ -14,7 +14,7 @@ const CompaniesPage = () => {
         setError(null)
         const data = await clientService.list({ skip: 0, limit: 20 })
         setItems(data.items)
-      } catch (e: any) {
+      } catch (e) {
         setError('Failed to load companies')
         console.error(e)
       } finally {

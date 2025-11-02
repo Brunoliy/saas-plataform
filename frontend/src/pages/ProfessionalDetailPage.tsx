@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { professionalService, ProfessionalProfile } from '@/services/professionalService'
@@ -24,15 +24,7 @@ const ProfessionalDetailPage = () => {
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
 
-  useEffect(() => {
-    if (id) {
-      loadProfessional()
-      loadProjects()
-      loadReviews()
-    }
-  }, [id])
-
-  const loadProfessional = async () => {
+  const loadProfessional = useCallback(async () => {
     try {
       setIsLoading(true)
       const data = await professionalService.getById(id!)
@@ -44,9 +36,9 @@ const ProfessionalDetailPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [id, navigate])
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       setIsLoadingProjects(true)
       const data = await projectService.getProjects({
@@ -59,9 +51,9 @@ const ProfessionalDetailPage = () => {
     } finally {
       setIsLoadingProjects(false)
     }
-  }
+  }, [id])
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       setIsLoadingReviews(true)
       // Get reviews for professional (where they were reviewed)
@@ -75,7 +67,15 @@ const ProfessionalDetailPage = () => {
     } finally {
       setIsLoadingReviews(false)
     }
-  }
+  }, [id, professional])
+
+  useEffect(() => {
+    if (id) {
+      loadProfessional()
+      loadProjects()
+      loadReviews()
+    }
+  }, [id, loadProfessional, loadProjects, loadReviews])
 
   const handleSubmitReview = async (reviewData: ReviewCreate) => {
     await reviewService.createReview(reviewData)

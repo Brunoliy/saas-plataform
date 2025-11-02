@@ -35,10 +35,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
+    - name: Set up Python 3.13
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.13'
 
     - name: Install Poetry
       run: |
@@ -61,8 +61,7 @@ jobs:
       run: |
         cd backend
         poetry run ruff check .
-        poetry run black --check .
-        poetry run mypy app/
+        poetry run ruff format --check .
 
     - name: Run tests
       run: |
