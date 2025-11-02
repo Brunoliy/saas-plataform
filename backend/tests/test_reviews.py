@@ -19,7 +19,9 @@ def db_session_with_factories(db_session):
     yield db_session
 
 
-def test_create_review_client_to_professional(db_session_with_factories, client: TestClient):
+def test_create_review_client_to_professional(
+    db_session_with_factories, client: TestClient
+):
     """Test company giving feedback to professional."""
     # Create completed project with professional
     client_profile = ClientProfileFactory()
@@ -50,7 +52,9 @@ def test_create_review_client_to_professional(db_session_with_factories, client:
     assert data["review_type"] == "client_to_professional"
 
 
-def test_create_review_professional_to_client(db_session_with_factories, client: TestClient):
+def test_create_review_professional_to_client(
+    db_session_with_factories, client: TestClient
+):
     """Test professional giving feedback to company."""
     client_profile = ClientProfileFactory()
     professional = ProfessionalProfileFactory()
@@ -164,7 +168,9 @@ def test_list_reviews_by_project(db_session_with_factories, client: TestClient):
     assert len(data["items"]) == 2
 
 
-def test_get_average_rating_for_professional(db_session_with_factories, client: TestClient):
+def test_get_average_rating_for_professional(
+    db_session_with_factories, client: TestClient
+):
     """Test calculating average rating for a professional."""
     professional = ProfessionalProfileFactory()
     # Create reviews with ratings 3, 4, 5 (average = 4.0)
@@ -204,7 +210,9 @@ def test_get_average_rating_for_company(db_session_with_factories, client: TestC
     assert data["average_rating"] == pytest.approx(4.67, rel=0.1)
 
 
-def test_review_only_for_completed_projects(db_session_with_factories, client: TestClient):
+def test_review_only_for_completed_projects(
+    db_session_with_factories, client: TestClient
+):
     """Test that reviews can only be created for COMPLETED projects."""
     project = ProjectFactory(status="IN_PROGRESS")
     professional = ProfessionalProfileFactory()
