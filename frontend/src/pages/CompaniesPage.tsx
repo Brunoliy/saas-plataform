@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { clientService, ClientProfile } from '@/services/clientService'
 
 const CompaniesPage = () => {
@@ -39,14 +40,24 @@ const CompaniesPage = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((c) => (
-            <div key={c.id} className="card">
+            <Link key={c.id} to={`/companies/${c.id}`} className="card hover:shadow-lg transition-shadow">
               <div className="card-content">
-                <h3 className="text-lg font-semibold text-gray-900">{c.company_name || 'Company'}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  {c.company_name || 'Company'}
+                </h3>
                 {c.business_sector && (
                   <p className="mt-2 text-gray-700 text-sm">Sector: {c.business_sector}</p>
                 )}
+                {c.description && (
+                  <p className="mt-2 text-gray-600 text-sm line-clamp-2">{c.description}</p>
+                )}
+                {c.average_rating != null && (
+                  <p className="mt-3 text-yellow-600 font-medium text-sm">
+                    ⭐ {Number(c.average_rating).toFixed(1)} ({c.total_reviews} reviews)
+                  </p>
+                )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

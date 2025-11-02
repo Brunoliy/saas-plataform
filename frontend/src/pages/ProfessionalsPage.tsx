@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { professionalService, ProfessionalProfile } from '@/services/professionalService'
 
 const ProfessionalsPage = () => {
@@ -39,15 +40,22 @@ const ProfessionalsPage = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((p) => (
-            <div key={p.id} className="card">
+            <Link key={p.id} to={`/professionals/${p.id}`} className="card hover:shadow-lg transition-shadow">
               <div className="card-content">
-                <h3 className="text-lg font-semibold text-gray-900">{p.title}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">{p.title}</h3>
                 {p.bio && <p className="mt-2 text-gray-700 line-clamp-3">{p.bio}</p>}
-                {p.hourly_rate != null && (
-                  <p className="mt-2 text-gray-600 text-sm">Hourly: R$ {Number(p.hourly_rate).toFixed(2)}</p>
-                )}
+                <div className="mt-3 flex items-center justify-between text-sm">
+                  {p.hourly_rate != null && (
+                    <p className="text-gray-600">R$ {Number(p.hourly_rate).toFixed(2)}/hour</p>
+                  )}
+                  {p.average_rating != null && (
+                    <p className="text-yellow-600 font-medium">
+                      ⭐ {Number(p.average_rating).toFixed(1)}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

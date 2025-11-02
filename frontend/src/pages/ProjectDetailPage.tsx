@@ -3,10 +3,12 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { projectService } from '@/services/projectService'
 import { reviewService } from '@/services/reviewService'
+import { proposalService } from '@/services/proposalService'
+import { professionalService } from '@/services/professionalService'
 import { Project } from '@/types/project'
 import { Review, ReviewCreate } from '@/types/review'
 import { toast } from 'react-hot-toast'
-import { ArrowLeft, Briefcase, Calendar, DollarSign, User } from 'lucide-react'
+import { ArrowLeft, Briefcase, Calendar, DollarSign, User, Send } from 'lucide-react'
 import ReviewForm from '@/components/ReviewForm'
 import ReviewList from '@/components/ReviewList'
 
@@ -19,13 +21,39 @@ const ProjectDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingReviews, setIsLoadingReviews] = useState(true)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [showProposalForm, setShowProposalForm] = useState(false)
+  const [proposalDescription, setProposalDescription] = useState('')
+  const [proposalAmount, setProposalAmount] = useState('')
+  const [proposalDays, setProposalDays] = useState('')
+  const [isSubmittingProposal, setIsSubmittingProposal] = useState(false)
+  const [hasApplied, setHasApplied] = useState(false)
 
   useEffect(() => {
     if (id) {
       loadProject()
       loadReviews()
+      checkIfApplied()
     }
   }, [id])
+
+  const checkIfApplied = async () => {
+    if (!user || !id) return
+
+    try {
+      const professionalProfile = await professionalService.getMyProfile()
+      if (professionalProfile) {
+        const proposals = await proposalService.getProposals({
+          project_id: id,
+          professional_id: professionalProfile.id,
+          limit: 1,
+        })
+        setHasApplied(proposals.items.length > 0)
+      }
+    } catch (error) {
+      // User might not have a professional profile
+      console.log('Could not check proposal status:', error)
+    }
+  }
 
   const loadProject = async () => {
     try {
@@ -59,6 +87,37 @@ const ProjectDetailPage = () => {
     loadReviews()
   }
 
+  const handleSubmitProposal = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!proposalAmount || !proposalDescription) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    try {
+      setIsSubmittingProposal(true)
+      await proposalService.createProposal({
+        project_id: id!,
+        proposed_amount: Number(proposalAmount),
+        estimated_days: proposalDays ? Number(proposalDays) : undefined,
+        description: proposalDescription,
+      })
+
+      toast.success('Proposal submitted successfully!')
+      setShowProposalForm(false)
+      setProposalDescription('')
+      setProposalAmount('')
+      setProposalDays('')
+      setHasApplied(true)
+    } catch (error: any) {
+      console.error('Failed to submit proposal:', error)
+      toast.error(error.response?.data?.detail || 'Failed to submit proposal')
+    } finally {
+      setIsSubmittingProposal(false)
+    }
+  }
+
   const formatCurrency = (amount: number | null) => {
     if (!amount) return 'Not specified'
     return new Intl.NumberFormat('pt-BR', {
@@ -84,6 +143,22 @@ const ProjectDetailPage = () => {
         {status.replace('_', ' ')}
       </span>
     )
+  }
+
+  // Check if professional can apply to project
+  const canApplyToProject = () => {
+    if (!project || !user) return false
+
+    // Project must be OPEN
+    if (project.status !== 'OPEN') return false
+
+    // User must not be the project owner
+    if (project.client_id === user.id) return false
+
+    // User must not have already applied
+    if (hasApplied) return false
+
+    return true
   }
 
   // Check if user can leave a review
@@ -238,6 +313,122 @@ const ProjectDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Apply to Project Section */}
+      {canApplyToProject() && (
+        <div className="card mb-6">
+          <div className="card-header">
+            <h2 className="text-xl font-bold text-gray-900">Apply to this Project</h2>
+          </div>
+          <div className="card-content">
+            {!showProposalForm ? (
+              <div className="text-center py-4">
+                <p className="text-gray-600 mb-4">
+                  Interested in this project? Submit a proposal to get started!
+                </p>
+                <button
+                  onClick={() => setShowProposalForm(true)}
+                  className="btn btn-primary inline-flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  Submit Proposal
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitProposal} className="space-y-4">
+                <div>
+                  <label htmlFor="proposalAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                    Proposed Amount (BRL) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="proposalAmount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={proposalAmount}
+                    onChange={(e) => setProposalAmount(e.target.value)}
+                    className="input"
+                    placeholder="10000.00"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="proposalDays" className="block text-sm font-medium text-gray-700 mb-1">
+                    Estimated Days
+                  </label>
+                  <input
+                    id="proposalDays"
+                    type="number"
+                    min="1"
+                    value={proposalDays}
+                    onChange={(e) => setProposalDays(e.target.value)}
+                    className="input"
+                    placeholder="30"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="proposalDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                    Proposal Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="proposalDescription"
+                    value={proposalDescription}
+                    onChange={(e) => setProposalDescription(e.target.value)}
+                    rows={6}
+                    className="input"
+                    placeholder="Explain your approach to this project, relevant experience, and why you're the best fit..."
+                    required
+                    maxLength={2000}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {proposalDescription.length}/2000 characters
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={isSubmittingProposal}
+                    className="btn btn-primary flex-1"
+                  >
+                    {isSubmittingProposal ? 'Submitting...' : 'Submit Proposal'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProposalForm(false)
+                      setProposalDescription('')
+                      setProposalAmount('')
+                      setProposalDays('')
+                    }}
+                    disabled={isSubmittingProposal}
+                    className="btn btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {hasApplied && !canApplyToProject() && project.status === 'OPEN' && (
+        <div className="card mb-6">
+          <div className="card-content">
+            <div className="text-center py-4">
+              <p className="text-green-600 font-medium">
+                You have already submitted a proposal for this project
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                The client will review your proposal and get back to you.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Reviews Section */}
       <div className="card">
