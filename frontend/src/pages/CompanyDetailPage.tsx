@@ -87,7 +87,9 @@ const CompanyDetailPage = () => {
     await reviewService.createReview(reviewData)
     setShowReviewForm(false)
     setSelectedProject(null)
-    loadReviews()
+    if (company?.user_id) {
+      loadReviews(company.user_id)
+    }
     toast.success('Review submitted successfully!')
   }
 
