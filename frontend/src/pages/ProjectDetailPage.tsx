@@ -156,7 +156,7 @@ const ProjectDetailPage = () => {
     if (project.status !== 'OPEN') return false
 
     // User must not be the project owner
-    if (project.client_id === user.id) return false
+    if (project.client_user_id === user.id) return false
 
     // User must not have already applied
     if (hasApplied) return false

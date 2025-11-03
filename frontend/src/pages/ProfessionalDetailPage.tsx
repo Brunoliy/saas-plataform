@@ -53,12 +53,12 @@ const ProfessionalDetailPage = () => {
     }
   }, [id])
 
-  const loadReviews = useCallback(async () => {
+  const loadReviews = useCallback(async (reviewedUserId: string) => {
     try {
       setIsLoadingReviews(true)
       // Get reviews for professional (where they were reviewed)
       const data = await reviewService.getReviews({
-        reviewed_id: professional?.user_id || id!,
+        reviewed_id: reviewedUserId,
         limit: 100,
       })
       setReviews(data.items)
@@ -67,15 +67,21 @@ const ProfessionalDetailPage = () => {
     } finally {
       setIsLoadingReviews(false)
     }
-  }, [id, professional])
+  }, [])
 
   useEffect(() => {
     if (id) {
       loadProfessional()
       loadProjects()
-      loadReviews()
     }
-  }, [id, loadProfessional, loadProjects, loadReviews])
+  }, [id, loadProfessional, loadProjects])
+
+  // Separate effect for reviews that runs after professional loads
+  useEffect(() => {
+    if (professional?.user_id) {
+      loadReviews(professional.user_id)
+    }
+  }, [professional?.user_id, loadReviews])
 
   const handleSubmitReview = async (reviewData: ReviewCreate) => {
     await reviewService.createReview(reviewData)
