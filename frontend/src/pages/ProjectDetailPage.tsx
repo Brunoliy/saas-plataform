@@ -7,8 +7,9 @@ import { proposalService } from '@/services/proposalService'
 import { professionalService } from '@/services/professionalService'
 import { Project } from '@/types/project'
 import { Review, ReviewCreate } from '@/types/review'
+import { Proposal } from '@/types/proposal'
 import { toast } from 'react-hot-toast'
-import { ArrowLeft, Briefcase, Calendar, DollarSign, User, Send } from 'lucide-react'
+import { ArrowLeft, Briefcase, Calendar, DollarSign, User, Send, CheckCircle, XCircle } from 'lucide-react'
 import ReviewForm from '@/components/ReviewForm'
 import ReviewList from '@/components/ReviewList'
 
@@ -18,8 +19,10 @@ const ProjectDetailPage = () => {
   const { user } = useAuthStore()
   const [project, setProject] = useState<Project | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
+  const [proposals, setProposals] = useState<Proposal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingReviews, setIsLoadingReviews] = useState(true)
+  const [isLoadingProposals, setIsLoadingProposals] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [showProposalForm, setShowProposalForm] = useState(false)
   const [proposalDescription, setProposalDescription] = useState('')
@@ -73,13 +76,26 @@ const ProjectDetailPage = () => {
     }
   }, [id])
 
+  const loadProposals = useCallback(async () => {
+    try {
+      setIsLoadingProposals(true)
+      const data = await proposalService.getProposals({ project_id: id!, limit: 100 })
+      setProposals(data.items)
+    } catch (error) {
+      console.error('Failed to load proposals:', error)
+    } finally {
+      setIsLoadingProposals(false)
+    }
+  }, [id])
+
   useEffect(() => {
     if (id) {
       loadProject()
       loadReviews()
+      loadProposals()
       checkIfApplied()
     }
-  }, [id, loadProject, loadReviews, checkIfApplied])
+  }, [id, loadProject, loadReviews, loadProposals, checkIfApplied])
 
   const handleSubmitReview = async (reviewData: ReviewCreate) => {
     await reviewService.createReview(reviewData)
@@ -118,6 +134,29 @@ const ProjectDetailPage = () => {
       toast.error(String(errorMessage))
     } finally {
       setIsSubmittingProposal(false)
+    }
+  }
+
+  const handleAcceptProposal = async (proposalId: string) => {
+    try {
+      await proposalService.acceptProposal(proposalId)
+      toast.success('Proposal accepted successfully!')
+      loadProposals()
+      loadProject()
+    } catch (error) {
+      console.error('Failed to accept proposal:', error)
+      toast.error('Failed to accept proposal')
+    }
+  }
+
+  const handleRejectProposal = async (proposalId: string) => {
+    try {
+      await proposalService.rejectProposal(proposalId)
+      toast.success('Proposal rejected')
+      loadProposals()
+    } catch (error) {
+      console.error('Failed to reject proposal:', error)
+      toast.error('Failed to reject proposal')
     }
   }
 
@@ -261,7 +300,7 @@ const ProjectDetailPage = () => {
     )
   }
 
-  const isOwner = user?.id === project.client_id
+  const isOwner = user?.id === project.client_user_id
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -456,6 +495,90 @@ const ProjectDetailPage = () => {
                 The client will review your proposal and get back to you.
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Proposals Section - Only visible to project owner */}
+      {isOwner && proposals.length > 0 && (
+        <div className="card mb-6">
+          <div className="card-header">
+            <h2 className="text-xl font-bold text-gray-900">
+              Proposals Received ({proposals.length})
+            </h2>
+          </div>
+          <div className="card-content">
+            {isLoadingProposals ? (
+              <p className="text-gray-600">Loading proposals...</p>
+            ) : (
+              <div className="space-y-4">
+                {proposals.map((proposal) => (
+                  <div
+                    key={proposal.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-semibold text-lg">
+                            {formatCurrency(proposal.proposed_amount)}
+                          </span>
+                          {proposal.estimated_days && (
+                            <span className="text-sm text-gray-600">
+                              • {proposal.estimated_days} days
+                            </span>
+                          )}
+                          {proposal.ai_score && (
+                            <span className="text-sm text-blue-600 font-medium">
+                              • AI Score: {Math.round(proposal.ai_score * 100)}%
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">
+                          {proposal.description}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Submitted {new Date(proposal.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 ml-4">
+                        <span
+                          className={`px-3 py-1 text-xs font-medium rounded-full ${
+                            proposal.status === 'ACCEPTED'
+                              ? 'bg-green-100 text-green-800'
+                              : proposal.status === 'REJECTED'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {proposal.status}
+                        </span>
+                        {proposal.status === 'SUBMITTED' && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAcceptProposal(proposal.id)}
+                              className="btn btn-sm bg-green-600 hover:bg-green-700 text-white flex items-center gap-1"
+                              title="Accept proposal"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleRejectProposal(proposal.id)}
+                              className="btn btn-sm bg-red-600 hover:bg-red-700 text-white flex items-center gap-1"
+                              title="Reject proposal"
+                            >
+                              <XCircle className="w-4 h-4" />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
