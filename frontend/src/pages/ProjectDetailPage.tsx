@@ -138,8 +138,13 @@ const ProjectDetailPage = () => {
   }
 
   const handleAcceptProposal = async (proposalId: string) => {
+    console.log('=== handleAcceptProposal called ===')
+    console.log('Proposal ID:', proposalId)
+
     try {
-      await proposalService.acceptProposal(proposalId)
+      console.log('Calling acceptProposal API...')
+      const result = await proposalService.acceptProposal(proposalId)
+      console.log('Accept result:', result)
       toast.success('Proposal accepted successfully!')
       loadProposals()
       loadProject()
@@ -150,8 +155,13 @@ const ProjectDetailPage = () => {
   }
 
   const handleRejectProposal = async (proposalId: string) => {
+    console.log('=== handleRejectProposal called ===')
+    console.log('Proposal ID:', proposalId)
+
     try {
-      await proposalService.rejectProposal(proposalId)
+      console.log('Calling rejectProposal API...')
+      const result = await proposalService.rejectProposal(proposalId)
+      console.log('Reject result:', result)
       toast.success('Proposal rejected')
       loadProposals()
     } catch (error) {
@@ -556,17 +566,29 @@ const ProjectDetailPage = () => {
                         {proposal.status === 'SUBMITTED' && (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleAcceptProposal(proposal.id)}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                console.log('Accept button clicked!')
+                                handleAcceptProposal(proposal.id)
+                              }}
                               className="btn btn-sm bg-green-600 hover:bg-green-700 text-white flex items-center gap-1"
                               title="Accept proposal"
+                              type="button"
                             >
                               <CheckCircle className="w-4 h-4" />
                               Accept
                             </button>
                             <button
-                              onClick={() => handleRejectProposal(proposal.id)}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                console.log('Reject button clicked!')
+                                handleRejectProposal(proposal.id)
+                              }}
                               className="btn btn-sm bg-red-600 hover:bg-red-700 text-white flex items-center gap-1"
                               title="Reject proposal"
+                              type="button"
                             >
                               <XCircle className="w-4 h-4" />
                               Reject
