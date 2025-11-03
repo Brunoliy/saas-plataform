@@ -12,9 +12,9 @@ from app.models.base import BaseModel
 class ProposalStatus(str, Enum):
     """Proposal status enumeration."""
 
-    SUBMITTED = "submitted"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
+    SUBMITTED = "SUBMITTED"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
 
 
 class Proposal(BaseModel):
