@@ -166,21 +166,48 @@ const ProjectDetailPage = () => {
 
   // Check if user can leave a review
   const canLeaveReview = () => {
-    if (!project || !user) return false
+    console.log('=== canLeaveReview Debug ===')
+    console.log('project:', project)
+    console.log('user:', user)
+    console.log('project.status:', project?.status)
+    console.log('project.client_user_id:', project?.client_user_id)
+    console.log('project.selected_professional_user_id:', project?.selected_professional_user_id)
+    console.log('user.id:', user?.id)
+
+    if (!project || !user) {
+      console.log('Missing project or user')
+      return false
+    }
 
     // Project must be completed
-    if (project.status !== 'COMPLETED') return false
+    if (project.status !== 'COMPLETED') {
+      console.log('Project not completed, status:', project.status)
+      return false
+    }
 
     // User must be either the client or the selected professional (use user IDs from backend)
     const isClient = project.client_user_id === user.id
     const isProfessional = project.selected_professional_user_id === user.id
 
-    if (!isClient && !isProfessional) return false
+    console.log('isClient:', isClient)
+    console.log('isProfessional:', isProfessional)
+
+    if (!isClient && !isProfessional) {
+      console.log('User is neither client nor professional')
+      return false
+    }
 
     // Check if user already left a review
     const userAlreadyReviewed = reviews.some(r => r.reviewer_id === user.id)
-    if (userAlreadyReviewed) return false
+    console.log('userAlreadyReviewed:', userAlreadyReviewed)
+    console.log('reviews:', reviews)
 
+    if (userAlreadyReviewed) {
+      console.log('User already reviewed')
+      return false
+    }
+
+    console.log('Can leave review: TRUE')
     return true
   }
 
