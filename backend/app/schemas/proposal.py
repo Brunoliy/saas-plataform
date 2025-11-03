@@ -12,9 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field
 class ProposalStatus(str, Enum):
     """Proposal status enumeration."""
 
-    SUBMITTED = "submitted"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
+    SUBMITTED = "SUBMITTED"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
 
 
 class ProposalBase(BaseModel):
