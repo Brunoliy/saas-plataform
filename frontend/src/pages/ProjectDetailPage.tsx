@@ -171,9 +171,9 @@ const ProjectDetailPage = () => {
     // Project must be completed
     if (project.status !== 'COMPLETED') return false
 
-    // User must be either the client or the selected professional
-    const isClient = project.client_id === user.id
-    const isProfessional = project.selected_professional_id === user.id
+    // User must be either the client or the selected professional (use user IDs from backend)
+    const isClient = project.client_user_id === user.id
+    const isProfessional = project.selected_professional_user_id === user.id
 
     if (!isClient && !isProfessional) return false
 
@@ -187,9 +187,9 @@ const ProjectDetailPage = () => {
   const getReviewType = (): 'professional_to_client' | 'client_to_professional' | null => {
     if (!project || !user) return null
 
-    if (project.client_id === user.id) {
+    if (project.client_user_id === user.id) {
       return 'client_to_professional'
-    } else if (project.selected_professional_id === user.id) {
+    } else if (project.selected_professional_user_id === user.id) {
       return 'professional_to_client'
     }
 
@@ -199,12 +199,12 @@ const ProjectDetailPage = () => {
   const getReviewedUserId = (): string | null => {
     if (!project || !user) return null
 
-    if (project.client_id === user.id) {
-      // Client is reviewing the professional
-      return project.selected_professional_id
-    } else if (project.selected_professional_id === user.id) {
-      // Professional is reviewing the client
-      return project.client_id
+    if (project.client_user_id === user.id) {
+      // Client is reviewing the professional - need to return professional's user_id
+      return project.selected_professional_user_id || null
+    } else if (project.selected_professional_user_id === user.id) {
+      // Professional is reviewing the client - need to return client's user_id
+      return project.client_user_id || null
     }
 
     return null

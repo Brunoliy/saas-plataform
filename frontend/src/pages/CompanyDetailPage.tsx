@@ -97,8 +97,8 @@ const CompanyDetailPage = () => {
     // Must be completed
     if (project.status !== 'COMPLETED') return false
 
-    // User must be the selected professional
-    if (project.selected_professional_id !== user.id) return false
+    // User must be the selected professional (compare with selected_professional_user_id from backend)
+    if (project.selected_professional_user_id !== user.id) return false
 
     // Check if already reviewed
     const alreadyReviewed = reviews.some(r => r.project_id === project.id && r.reviewer_id === user.id)
