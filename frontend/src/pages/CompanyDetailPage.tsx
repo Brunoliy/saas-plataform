@@ -53,12 +53,12 @@ const CompanyDetailPage = () => {
     }
   }, [id])
 
-  const loadReviews = useCallback(async () => {
+  const loadReviews = useCallback(async (reviewedUserId: string) => {
     try {
       setIsLoadingReviews(true)
       // Get reviews for company (where they were reviewed)
       const data = await reviewService.getReviews({
-        reviewed_id: company?.user_id || id!,
+        reviewed_id: reviewedUserId,
         limit: 100,
       })
       setReviews(data.items)
@@ -67,15 +67,21 @@ const CompanyDetailPage = () => {
     } finally {
       setIsLoadingReviews(false)
     }
-  }, [id, company])
+  }, [])
 
   useEffect(() => {
     if (id) {
       loadCompany()
       loadProjects()
-      loadReviews()
     }
-  }, [id, loadCompany, loadProjects, loadReviews])
+  }, [id, loadCompany, loadProjects])
+
+  // Separate effect for reviews that runs after company loads
+  useEffect(() => {
+    if (company?.user_id) {
+      loadReviews(company.user_id)
+    }
+  }, [company?.user_id, loadReviews])
 
   const handleSubmitReview = async (reviewData: ReviewCreate) => {
     await reviewService.createReview(reviewData)
