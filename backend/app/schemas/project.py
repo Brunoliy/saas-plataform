@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Any, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ProjectStatus(str, Enum):
@@ -50,9 +50,21 @@ class ProjectResponse(ProjectBase):
 
     id: UUID
     client_id: UUID
+    client_user_id: Optional[UUID] = None  # User ID of the client who created the project
     status: ProjectStatus
     selected_professional_id: Optional[UUID] = None
+    selected_professional_user_id: Optional[UUID] = None  # User ID of the selected professional
     created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_user_ids(cls, data: Any) -> Any:
+        """Populate user IDs from relationships."""
+        if hasattr(data, "client") and data.client:
+            data.client_user_id = data.client.user_id
+        if hasattr(data, "selected_professional") and data.selected_professional:
+            data.selected_professional_user_id = data.selected_professional.user_id
+        return data

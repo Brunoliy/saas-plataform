@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.project import Project, ProjectStatus
 from app.schemas.project import ProjectCreate, ProjectUpdate
@@ -37,6 +37,7 @@ class ProjectRepository:
         """Get project by ID (only non-deleted projects)."""
         return (
             self.db.query(Project)
+            .options(joinedload(Project.client), joinedload(Project.selected_professional))
             .filter(and_(Project.id == project_id, Project.deleted_at.is_(None)))
             .first()
         )
@@ -71,7 +72,9 @@ class ProjectRepository:
         self, skip: int = 0, limit: int = 20, include_deleted: bool = False
     ) -> list[Project]:
         """List projects with pagination."""
-        query = self.db.query(Project)
+        query = self.db.query(Project).options(
+            joinedload(Project.client), joinedload(Project.selected_professional)
+        )
 
         if not include_deleted:
             query = query.filter(Project.deleted_at.is_(None))
@@ -93,6 +96,7 @@ class ProjectRepository:
         """Get projects by client ID."""
         return (
             self.db.query(Project)
+            .options(joinedload(Project.client), joinedload(Project.selected_professional))
             .filter(and_(Project.client_id == client_id, Project.deleted_at.is_(None)))
             .offset(skip)
             .limit(limit)
@@ -105,6 +109,7 @@ class ProjectRepository:
         """Get projects by status."""
         return (
             self.db.query(Project)
+            .options(joinedload(Project.client), joinedload(Project.selected_professional))
             .filter(and_(Project.status == status, Project.deleted_at.is_(None)))
             .offset(skip)
             .limit(limit)
@@ -117,6 +122,7 @@ class ProjectRepository:
         """Get projects by professional ID."""
         return (
             self.db.query(Project)
+            .options(joinedload(Project.client), joinedload(Project.selected_professional))
             .filter(
                 and_(
                     Project.selected_professional_id == professional_id,
