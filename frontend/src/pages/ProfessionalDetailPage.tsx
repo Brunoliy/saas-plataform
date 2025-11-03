@@ -87,7 +87,9 @@ const ProfessionalDetailPage = () => {
     await reviewService.createReview(reviewData)
     setShowReviewForm(false)
     setSelectedProject(null)
-    loadReviews()
+    if (professional?.user_id) {
+      loadReviews(professional.user_id)
+    }
     toast.success('Review submitted successfully!')
   }
 
