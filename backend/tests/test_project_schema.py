@@ -1,15 +1,14 @@
 """Tests for project schemas."""
 
-import pytest
-from uuid import uuid4
 from datetime import datetime
 from decimal import Decimal
+from uuid import uuid4
 
-from app.schemas.project import ProjectResponse, ProjectStatus
-from app.models.project import Project
 from app.models.client import ClientProfile
 from app.models.professional import ProfessionalProfile
-from app.models.user import User, AccountType
+from app.models.project import Project
+from app.models.user import AccountType, User
+from app.schemas.project import ProjectResponse, ProjectStatus
 
 
 class TestProjectResponse:
@@ -193,7 +192,9 @@ class TestProjectResponse:
         db_session.commit()
 
         # Query without joinedload (relationships not loaded)
-        project_no_relationships = db_session.query(Project).filter_by(id=project.id).first()
+        project_no_relationships = (
+            db_session.query(Project).filter_by(id=project.id).first()
+        )
 
         # This should not raise an error even if relationships aren't loaded
         # The validator should handle missing relationships gracefully
