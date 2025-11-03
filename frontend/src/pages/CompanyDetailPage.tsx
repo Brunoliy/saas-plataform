@@ -94,16 +94,36 @@ const CompanyDetailPage = () => {
   }
 
   const canReviewCompany = (project: Project) => {
-    if (!user || !company) return false
+    console.log('=== canReviewCompany Debug ===')
+    console.log('project:', project)
+    console.log('user:', user)
+    console.log('company:', company)
+    console.log('project.status:', project.status)
+    console.log('project.selected_professional_user_id:', project.selected_professional_user_id)
+    console.log('user.id:', user?.id)
+
+    if (!user || !company) {
+      console.log('Missing user or company')
+      return false
+    }
 
     // Must be completed
-    if (project.status !== 'COMPLETED') return false
+    if (project.status !== 'COMPLETED') {
+      console.log('Project not completed')
+      return false
+    }
 
     // User must be the selected professional (compare with selected_professional_user_id from backend)
-    if (project.selected_professional_user_id !== user.id) return false
+    if (project.selected_professional_user_id !== user.id) {
+      console.log('User is not the selected professional')
+      return false
+    }
 
     // Check if already reviewed
     const alreadyReviewed = reviews.some(r => r.project_id === project.id && r.reviewer_id === user.id)
+    console.log('alreadyReviewed:', alreadyReviewed)
+    console.log('Can review company:', !alreadyReviewed)
+
     return !alreadyReviewed
   }
 
