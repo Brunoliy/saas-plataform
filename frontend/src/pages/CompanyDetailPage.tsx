@@ -239,34 +239,38 @@ const CompanyDetailPage = () => {
           ) : (
             <div className="space-y-4">
               {projects.map((project) => (
-                <div key={project.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={project.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200">
                   <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <Link
-                        to={`/projects/${project.id}`}
-                        className="text-lg font-semibold text-gray-900 hover:text-blue-600"
-                      >
+                    <Link
+                      to={`/projects/${project.id}`}
+                      className="flex-1 group"
+                    >
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                         {project.title}
-                      </Link>
+                      </h3>
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">{project.description}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
+                      {project.budget && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          Budget: {formatCurrency(project.budget)}
+                        </p>
+                      )}
+                    </Link>
+                    <div className="flex flex-col items-end gap-2 ml-4">
                       {getStatusBadge(project.status)}
                       {canReviewCompany(project) && (
                         <button
-                          onClick={() => handleReviewClick(project)}
-                          className="btn btn-primary btn-sm"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handleReviewClick(project)
+                          }}
+                          className="btn btn-primary btn-sm whitespace-nowrap"
                         >
                           Leave Review
                         </button>
                       )}
                     </div>
                   </div>
-                  {project.budget && (
-                    <p className="text-sm text-gray-600">
-                      Budget: {formatCurrency(project.budget)}
-                    </p>
-                  )}
                 </div>
               ))}
             </div>
