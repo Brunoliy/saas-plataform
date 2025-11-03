@@ -12,10 +12,10 @@ from app.models.base import BaseModel
 class ProjectStatus(str, Enum):
     """Project status enumeration."""
 
-    OPEN = "open"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    OPEN = "OPEN"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 class Project(BaseModel):

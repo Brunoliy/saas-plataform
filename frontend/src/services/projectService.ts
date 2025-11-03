@@ -13,7 +13,8 @@ export const projectService = {
   async getProjects(filters?: ProjectFilters): Promise<PaginatedProjects> {
     const params = new URLSearchParams()
 
-    if (filters?.status) params.append('status', filters.status)
+    // Backend expects 'status_filter' not 'status'
+    if (filters?.status) params.append('status_filter', filters.status)
     if (filters?.client_id) params.append('client_id', filters.client_id)
     if (filters?.professional_id) params.append('professional_id', filters.professional_id)
     if (filters?.only_open !== undefined) params.append('only_open', String(filters.only_open))
