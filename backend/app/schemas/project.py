@@ -50,10 +50,14 @@ class ProjectResponse(ProjectBase):
 
     id: UUID
     client_id: UUID
-    client_user_id: Optional[UUID] = None  # User ID of the client who created the project
+    client_user_id: Optional[
+        UUID
+    ] = None  # User ID of the client who created the project
     status: ProjectStatus
     selected_professional_id: Optional[UUID] = None
-    selected_professional_user_id: Optional[UUID] = None  # User ID of the selected professional
+    selected_professional_user_id: Optional[
+        UUID
+    ] = None  # User ID of the selected professional
     created_at: datetime
     updated_at: datetime
 
@@ -63,8 +67,17 @@ class ProjectResponse(ProjectBase):
     @classmethod
     def populate_user_ids(cls, data: Any) -> Any:
         """Populate user IDs from relationships."""
-        if hasattr(data, "client") and data.client:
+        # If data is a dict, it's already serialized, return as-is
+        if isinstance(data, dict):
+            return data
+
+        # If it's a model instance, populate the user IDs from relationships
+        if hasattr(data, "client") and data.client and hasattr(data.client, "user_id"):
             data.client_user_id = data.client.user_id
-        if hasattr(data, "selected_professional") and data.selected_professional:
+        if (
+            hasattr(data, "selected_professional")
+            and data.selected_professional
+            and hasattr(data.selected_professional, "user_id")
+        ):
             data.selected_professional_user_id = data.selected_professional.user_id
         return data
