@@ -12,10 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class ProjectStatus(str, Enum):
     """Project status enumeration."""
 
-    OPEN = "open"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    OPEN = "OPEN"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 class ProjectBase(BaseModel):
