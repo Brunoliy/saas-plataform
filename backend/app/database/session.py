@@ -14,7 +14,7 @@ engine = create_engine(
     settings.database_url,
     poolclass=StaticPool,
     echo=settings.debug,
-    pool_pre_ping=True,
+    pool_pre_ping=False,  # Disabled due to psycopg2 + Python 3.13 compatibility issue
 )
 
 # Create session factory
