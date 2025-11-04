@@ -55,11 +55,16 @@ class ReviewService:
                 f"Cannot review project that is not completed. Current status: {project.status}"
             )
 
-        # Verify reviewer is part of the project
-        if (
-            reviewer_id != project.client_id
-            and reviewer_id != project.selected_professional_id
-        ):
+        # Get user IDs from project relationships
+        client_user_id = project.client.user_id if project.client else None
+        professional_user_id = (
+            project.selected_professional.user_id
+            if project.selected_professional
+            else None
+        )
+
+        # Verify reviewer is part of the project (compare user_ids)
+        if reviewer_id != client_user_id and reviewer_id != professional_user_id:
             raise ValueError("You can only review projects you are part of")
 
         # Verify reviewer hasn't already reviewed this project
@@ -71,16 +76,16 @@ class ReviewService:
 
         # Validate review type matches project roles
         if review_data.review_type == ReviewType.CLIENT_TO_PROFESSIONAL:
-            if reviewer_id != project.client_id:
+            if reviewer_id != client_user_id:
                 raise ValueError("Only the client can review the professional")
-            if review_data.reviewed_id != project.selected_professional_id:
+            if review_data.reviewed_id != professional_user_id:
                 raise ValueError(
                     "You can only review the professional assigned to this project"
                 )
         elif review_data.review_type == ReviewType.PROFESSIONAL_TO_CLIENT:
-            if reviewer_id != project.selected_professional_id:
+            if reviewer_id != professional_user_id:
                 raise ValueError("Only the professional can review the client")
-            if review_data.reviewed_id != project.client_id:
+            if review_data.reviewed_id != client_user_id:
                 raise ValueError("You can only review the client of this project")
 
         # Create review
