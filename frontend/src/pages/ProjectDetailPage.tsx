@@ -160,6 +160,19 @@ const ProjectDetailPage = () => {
     }
   }
 
+  const handleStatusChange = async (newStatus: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') => {
+    if (!project) return
+
+    try {
+      await projectService.updateProject(project.id, { status: newStatus })
+      toast.success('Project status updated successfully!')
+      loadProject()
+    } catch (error) {
+      console.error('Failed to update project status:', error)
+      toast.error('Failed to update project status')
+    }
+  }
+
   const formatCurrency = (amount: number | null) => {
     if (!amount) return 'Not specified'
     return new Intl.NumberFormat('pt-BR', {
@@ -323,14 +336,6 @@ const ProjectDetailPage = () => {
             </div>
             {getStatusBadge(project.status)}
           </div>
-          {isOwner && (
-            <Link
-              to={`/projects/${project.id}/edit`}
-              className="btn btn-secondary btn-sm"
-            >
-              Edit Project
-            </Link>
-          )}
         </div>
 
         <div className="card-content space-y-4">
@@ -382,6 +387,48 @@ const ProjectDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Project Status Management - For Selected Professional */}
+      {user?.id === project.selected_professional_user_id && project.status !== 'CANCELLED' && (
+        <div className="card mb-6">
+          <div className="card-header">
+            <h2 className="text-xl font-bold text-gray-900">Project Status Management</h2>
+          </div>
+          <div className="card-content">
+            <p className="text-gray-600 mb-4">
+              Update the project status as you progress with the work.
+            </p>
+            <div className="flex gap-3">
+              {project.status === 'OPEN' && (
+                <button
+                  onClick={() => handleStatusChange('IN_PROGRESS')}
+                  className="btn btn-primary"
+                >
+                  Start Working (In Progress)
+                </button>
+              )}
+              {project.status === 'IN_PROGRESS' && (
+                <button
+                  onClick={() => handleStatusChange('COMPLETED')}
+                  className="btn bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Mark as Completed
+                </button>
+              )}
+              {project.status === 'COMPLETED' && (
+                <div className="text-center py-2">
+                  <p className="text-green-600 font-medium">
+                    This project has been marked as completed!
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    You can now leave a review for the client.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Apply to Project Section */}
       {canApplyToProject() && (
