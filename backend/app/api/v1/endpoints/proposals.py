@@ -1,6 +1,5 @@
 """Proposal endpoints."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -82,9 +81,9 @@ async def create_proposal(
 async def list_proposals(
     skip: int = 0,
     limit: int = 20,
-    project_id: Optional[str] = None,
-    professional_id: Optional[str] = None,
-    status_filter: Optional[ProposalStatus] = None,
+    project_id: str | None = None,
+    professional_id: str | None = None,
+    status_filter: ProposalStatus | None = None,
     current_user_id: str = Depends(get_current_user_id),
     proposal_service: ProposalService = Depends(get_proposal_service),
 ) -> PaginatedResponse[ProposalResponse]:

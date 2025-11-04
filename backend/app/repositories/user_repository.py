@@ -1,6 +1,5 @@
 """User repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -33,7 +32,7 @@ class UserRepository:
         self.db.refresh(db_user)
         return db_user
 
-    def get_by_id(self, user_id: UUID) -> Optional[User]:
+    def get_by_id(self, user_id: UUID) -> User | None:
         """Get user by ID (only non-deleted users)."""
         return (
             self.db.query(User)
@@ -41,7 +40,7 @@ class UserRepository:
             .first()
         )
 
-    def get_by_email(self, email: str) -> Optional[User]:
+    def get_by_email(self, email: str) -> User | None:
         """Get user by email (only non-deleted users)."""
         return (
             self.db.query(User)
@@ -49,7 +48,7 @@ class UserRepository:
             .first()
         )
 
-    def update(self, user_id: UUID, user_data: UserUpdate) -> Optional[User]:
+    def update(self, user_id: UUID, user_data: UserUpdate) -> User | None:
         """Update user."""
         db_user = self.get_by_id(user_id)
         if not db_user:
@@ -93,7 +92,7 @@ class UserRepository:
 
         return query.count()
 
-    def activate_user(self, user_id: UUID) -> Optional[User]:
+    def activate_user(self, user_id: UUID) -> User | None:
         """Activate user."""
         db_user = self.get_by_id(user_id)
         if not db_user:
@@ -104,7 +103,7 @@ class UserRepository:
         self.db.refresh(db_user)
         return db_user
 
-    def deactivate_user(self, user_id: UUID) -> Optional[User]:
+    def deactivate_user(self, user_id: UUID) -> User | None:
         """Deactivate user."""
         db_user = self.get_by_id(user_id)
         if not db_user:

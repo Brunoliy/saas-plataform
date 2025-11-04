@@ -1,7 +1,6 @@
 """User schemas."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_serializer
@@ -16,7 +15,7 @@ class UserBase(BaseModel):
     full_name: str = Field(
         ..., min_length=1, max_length=255, description="User full name"
     )
-    phone: Optional[str] = Field(None, max_length=20, description="User phone number")
+    phone: str | None = Field(None, max_length=20, description="User phone number")
     account_type: AccountType = Field(..., description="User account type")
 
 
@@ -29,9 +28,9 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     """User update schema."""
 
-    full_name: Optional[str] = Field(None, min_length=1, max_length=255)
-    phone: Optional[str] = Field(None, max_length=20)
-    active: Optional[bool] = None
+    full_name: str | None = Field(None, min_length=1, max_length=255)
+    phone: str | None = Field(None, max_length=20)
+    active: bool | None = None
 
 
 class UserResponse(UserBase):
@@ -41,7 +40,7 @@ class UserResponse(UserBase):
     active: bool
     created_at: datetime
     updated_at: datetime
-    deleted_at: Optional[datetime] = None
+    deleted_at: datetime | None = None
 
     @field_serializer("id")
     def serialize_id(self, value: UUID, _info):

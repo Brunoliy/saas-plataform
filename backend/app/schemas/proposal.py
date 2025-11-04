@@ -3,7 +3,6 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -21,7 +20,7 @@ class ProposalBase(BaseModel):
     """Base proposal schema."""
 
     proposed_amount: Decimal = Field(ge=0)
-    estimated_days: Optional[int] = Field(default=None, ge=1)
+    estimated_days: int | None = Field(default=None, ge=1)
     description: str
 
 
@@ -34,10 +33,10 @@ class ProposalCreate(ProposalBase):
 class ProposalUpdate(BaseModel):
     """Update proposal schema."""
 
-    proposed_amount: Optional[Decimal] = Field(default=None, ge=0)
-    estimated_days: Optional[int] = Field(default=None, ge=1)
-    description: Optional[str] = None
-    status: Optional[ProposalStatus] = None
+    proposed_amount: Decimal | None = Field(default=None, ge=0)
+    estimated_days: int | None = Field(default=None, ge=1)
+    description: str | None = None
+    status: ProposalStatus | None = None
 
 
 class ProposalResponse(ProposalBase):
@@ -47,7 +46,7 @@ class ProposalResponse(ProposalBase):
     project_id: UUID
     professional_id: UUID
     status: ProposalStatus
-    ai_score: Optional[Decimal] = None
+    ai_score: Decimal | None = None
     created_at: datetime
     updated_at: datetime
 

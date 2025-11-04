@@ -1,6 +1,5 @@
 """Professional service."""
 
-from typing import Optional
 from uuid import UUID
 
 from app.models.professional import (
@@ -61,21 +60,17 @@ class ProfessionalService:
 
         return profile
 
-    async def get_profile_by_id(
-        self, profile_id: UUID
-    ) -> Optional[ProfessionalProfile]:
+    async def get_profile_by_id(self, profile_id: UUID) -> ProfessionalProfile | None:
         """Get professional profile by ID."""
         return self.professional_repository.get_by_id(profile_id)
 
-    async def get_profile_by_user_id(
-        self, user_id: UUID
-    ) -> Optional[ProfessionalProfile]:
+    async def get_profile_by_user_id(self, user_id: UUID) -> ProfessionalProfile | None:
         """Get professional profile by user ID."""
         return self.professional_repository.get_by_user_id(user_id)
 
     async def update_profile(
         self, profile_id: UUID, profile_data: ProfessionalProfileUpdate
-    ) -> Optional[ProfessionalProfile]:
+    ) -> ProfessionalProfile | None:
         """Update professional profile."""
         return self.professional_repository.update(profile_id, profile_data)
 
@@ -95,7 +90,7 @@ class ProfessionalService:
 
     async def add_skill(
         self, professional_id: UUID, skill_data: ProfessionalSkillCreate
-    ) -> Optional[ProfessionalSkill]:
+    ) -> ProfessionalSkill | None:
         """Add a skill to professional profile."""
         # Verify professional exists
         professional = self.professional_repository.get_by_id(professional_id)
@@ -131,7 +126,7 @@ class ProfessionalService:
 
     async def update_rating(
         self, profile_id: UUID, average_rating: float, total_reviews: int
-    ) -> Optional[ProfessionalProfile]:
+    ) -> ProfessionalProfile | None:
         """Update professional rating."""
         return self.professional_repository.update_rating(
             profile_id, average_rating, total_reviews
@@ -145,7 +140,7 @@ class ProfessionalService:
 
     async def update_link(
         self, link_id: UUID, link_update: ProfessionalLinkUpdate
-    ) -> Optional[ProfessionalLink]:
+    ) -> ProfessionalLink | None:
         """Update a social link."""
         return self.professional_repository.update_link(link_id, link_update)
 

@@ -1,6 +1,5 @@
 """Skill endpoints."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -39,8 +38,8 @@ async def create_skill(
 async def list_skills(
     skip: int = 0,
     limit: int = 20,
-    category: Optional[str] = None,
-    search: Optional[str] = None,
+    category: str | None = None,
+    search: str | None = None,
     only_active: bool = True,
     skill_service: SkillService = Depends(get_skill_service),
 ) -> PaginatedResponse[SkillResponse]:

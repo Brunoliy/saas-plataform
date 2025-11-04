@@ -1,6 +1,5 @@
 """Skill repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -31,7 +30,7 @@ class SkillRepository:
         self.db.refresh(db_skill)
         return db_skill
 
-    def get_by_id(self, skill_id: UUID) -> Optional[Skill]:
+    def get_by_id(self, skill_id: UUID) -> Skill | None:
         """Get skill by ID (only non-deleted skills)."""
         return (
             self.db.query(Skill)
@@ -39,7 +38,7 @@ class SkillRepository:
             .first()
         )
 
-    def get_by_name(self, name: str) -> Optional[Skill]:
+    def get_by_name(self, name: str) -> Skill | None:
         """Get skill by name (only non-deleted skills)."""
         return (
             self.db.query(Skill)
@@ -47,7 +46,7 @@ class SkillRepository:
             .first()
         )
 
-    def update(self, skill_id: UUID, skill_data: SkillUpdate) -> Optional[Skill]:
+    def update(self, skill_id: UUID, skill_data: SkillUpdate) -> Skill | None:
         """Update skill."""
         db_skill = self.get_by_id(skill_id)
         if not db_skill:
@@ -113,7 +112,7 @@ class SkillRepository:
             .all()
         )
 
-    def activate_skill(self, skill_id: UUID) -> Optional[Skill]:
+    def activate_skill(self, skill_id: UUID) -> Skill | None:
         """Activate skill."""
         db_skill = self.get_by_id(skill_id)
         if not db_skill:
@@ -124,7 +123,7 @@ class SkillRepository:
         self.db.refresh(db_skill)
         return db_skill
 
-    def deactivate_skill(self, skill_id: UUID) -> Optional[Skill]:
+    def deactivate_skill(self, skill_id: UUID) -> Skill | None:
         """Deactivate skill."""
         db_skill = self.get_by_id(skill_id)
         if not db_skill:

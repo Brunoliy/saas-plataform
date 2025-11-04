@@ -1,6 +1,5 @@
 """Project endpoints."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -19,6 +18,7 @@ from app.schemas.project import (
     ProjectUpdate,
 )
 from app.services.client_service import ClientService
+from app.services.professional_service import ProfessionalService
 from app.services.project_service import ProjectService
 
 router = APIRouter()
@@ -38,6 +38,17 @@ def get_client_service(db: Session = Depends(get_db)) -> ClientService:
     """Get client service dependency."""
     client_repository = ClientRepository(db)
     return ClientService(client_repository)
+
+
+def get_professional_service(db: Session = Depends(get_db)) -> ProfessionalService:
+    """Get professional service dependency."""
+    from app.repositories.skill_repository import SkillRepository
+
+    professional_repository = ProfessionalRepository(db)
+    skill_repository = SkillRepository(db)
+    from app.services.professional_service import ProfessionalService
+
+    return ProfessionalService(professional_repository, skill_repository)
 
 
 @router.post("/", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
@@ -68,9 +79,9 @@ async def create_project(
 async def list_projects(
     skip: int = 0,
     limit: int = 20,
-    status_filter: Optional[ProjectStatus] = None,
-    client_id: Optional[str] = None,
-    professional_id: Optional[str] = None,
+    status_filter: ProjectStatus | None = None,
+    client_id: str | None = None,
+    professional_id: str | None = None,
     only_open: bool = False,
     project_service: ProjectService = Depends(get_project_service),
 ) -> PaginatedResponse[ProjectResponse]:
@@ -291,5 +302,77 @@ async def cancel_project(
             )
 
         return await project_service.cancel_project(project_uuid)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch("/{project_id}/start", response_model=ProjectResponse)
+async def start_project(
+    project_id: str,
+    current_user_id: str = Depends(get_current_user_id),
+    project_service: ProjectService = Depends(get_project_service),
+    professional_service: ProfessionalService = Depends(get_professional_service),
+) -> ProjectResponse:
+    """Start project (only assigned professional can start - OPEN to IN_PROGRESS)."""
+    try:
+        project_uuid = UUID(project_id)
+        user_uuid = UUID(current_user_id)
+
+        # Verify project exists
+        project = await project_service.get_project_by_id(project_uuid)
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+            )
+
+        # Verify user is a professional
+        professional_profile = await professional_service.get_profile_by_user_id(
+            user_uuid
+        )
+        if not professional_profile:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only professionals can start projects",
+            )
+
+        return await project_service.start_project(
+            project_uuid, professional_profile.id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch("/{project_id}/complete-by-professional", response_model=ProjectResponse)
+async def complete_project_by_professional(
+    project_id: str,
+    current_user_id: str = Depends(get_current_user_id),
+    project_service: ProjectService = Depends(get_project_service),
+    professional_service: ProfessionalService = Depends(get_professional_service),
+) -> ProjectResponse:
+    """Complete project (only assigned professional can complete - IN_PROGRESS to COMPLETED)."""
+    try:
+        project_uuid = UUID(project_id)
+        user_uuid = UUID(current_user_id)
+
+        # Verify project exists
+        project = await project_service.get_project_by_id(project_uuid)
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+            )
+
+        # Verify user is a professional
+        professional_profile = await professional_service.get_profile_by_user_id(
+            user_uuid
+        )
+        if not professional_profile:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only professionals can complete projects",
+            )
+
+        return await project_service.complete_project_by_professional(
+            project_uuid, professional_profile.id
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -16,7 +15,7 @@ class ClientLinkBase(BaseModel):
         description="Platform name (github, linkedin, twitter, website, other)",
     )
     url: str = Field(description="Link URL")
-    label: Optional[str] = Field(
+    label: str | None = Field(
         default=None, max_length=255, description="Optional custom label"
     )
 
@@ -30,9 +29,9 @@ class ClientLinkCreate(ClientLinkBase):
 class ClientLinkUpdate(BaseModel):
     """Update client link schema."""
 
-    platform: Optional[str] = Field(default=None, max_length=50)
-    url: Optional[str] = None
-    label: Optional[str] = Field(default=None, max_length=255)
+    platform: str | None = Field(default=None, max_length=50)
+    url: str | None = None
+    label: str | None = Field(default=None, max_length=255)
 
 
 class ClientLinkResponse(ClientLinkBase):
@@ -49,14 +48,12 @@ class ClientLinkResponse(ClientLinkBase):
 class ClientProfileBase(BaseModel):
     """Base client profile schema."""
 
-    company_name: Optional[str] = Field(default=None, max_length=255)
-    business_sector: Optional[str] = Field(default=None, max_length=100)
-    description: Optional[str] = Field(
+    company_name: str | None = Field(default=None, max_length=255)
+    business_sector: str | None = Field(default=None, max_length=100)
+    description: str | None = Field(
         default=None, description="Description of the company"
     )
-    bio: Optional[str] = Field(
-        default=None, description="About section for the company"
-    )
+    bio: str | None = Field(default=None, description="About section for the company")
 
 
 class ClientProfileCreate(ClientProfileBase):
@@ -68,10 +65,10 @@ class ClientProfileCreate(ClientProfileBase):
 class ClientProfileUpdate(BaseModel):
     """Update client profile schema."""
 
-    company_name: Optional[str] = Field(default=None, max_length=255)
-    business_sector: Optional[str] = Field(default=None, max_length=100)
-    description: Optional[str] = None
-    bio: Optional[str] = None
+    company_name: str | None = Field(default=None, max_length=255)
+    business_sector: str | None = Field(default=None, max_length=100)
+    description: str | None = None
+    bio: str | None = None
 
 
 class ClientProfileResponse(ClientProfileBase):
@@ -79,7 +76,7 @@ class ClientProfileResponse(ClientProfileBase):
 
     id: UUID
     user_id: UUID
-    average_rating: Optional[Decimal] = None
+    average_rating: Decimal | None = None
     total_reviews: int = 0
     links: list[ClientLinkResponse] = []
     created_at: datetime

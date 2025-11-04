@@ -1,7 +1,6 @@
 """Security utilities for authentication and authorization."""
 
 from datetime import datetime, timedelta
-from typing import Optional
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -29,7 +28,7 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(
     data: dict,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Create JWT access token."""
     to_encode = data.copy()
@@ -49,7 +48,7 @@ def create_access_token(
 
 def create_refresh_token(
     data: dict,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Create JWT refresh token."""
     to_encode = data.copy()

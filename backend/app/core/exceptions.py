@@ -1,6 +1,6 @@
 """Custom exceptions for the application."""
 
-from typing import Any, Optional
+from typing import Any
 
 
 class SaaSPlatformException(Exception):
@@ -9,8 +9,8 @@ class SaaSPlatformException(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        details: Optional[dict[str, Any]] = None,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         """Initialize exception."""
         super().__init__(message)
@@ -22,7 +22,7 @@ class SaaSPlatformException(Exception):
 class ValidationError(SaaSPlatformException):
     """Validation error exception."""
 
-    def __init__(self, message: str, field: Optional[str] = None) -> None:
+    def __init__(self, message: str, field: str | None = None) -> None:
         """Initialize validation error."""
         super().__init__(message, "VALIDATION_ERROR", {"field": field})
 
@@ -46,7 +46,7 @@ class AuthorizationError(SaaSPlatformException):
 class NotFoundError(SaaSPlatformException):
     """Resource not found exception."""
 
-    def __init__(self, resource: str, resource_id: Optional[str] = None) -> None:
+    def __init__(self, resource: str, resource_id: str | None = None) -> None:
         """Initialize not found error."""
         message = f"{resource} not found"
         if resource_id:
@@ -61,7 +61,7 @@ class NotFoundError(SaaSPlatformException):
 class ConflictError(SaaSPlatformException):
     """Resource conflict exception."""
 
-    def __init__(self, message: str, resource: Optional[str] = None) -> None:
+    def __init__(self, message: str, resource: str | None = None) -> None:
         """Initialize conflict error."""
         super().__init__(message, "CONFLICT_ERROR", {"resource": resource})
 
@@ -69,7 +69,7 @@ class ConflictError(SaaSPlatformException):
 class DatabaseError(SaaSPlatformException):
     """Database error exception."""
 
-    def __init__(self, message: str, operation: Optional[str] = None) -> None:
+    def __init__(self, message: str, operation: str | None = None) -> None:
         """Initialize database error."""
         super().__init__(message, "DATABASE_ERROR", {"operation": operation})
 
@@ -77,7 +77,7 @@ class DatabaseError(SaaSPlatformException):
 class ExternalServiceError(SaaSPlatformException):
     """External service error exception."""
 
-    def __init__(self, message: str, service: Optional[str] = None) -> None:
+    def __init__(self, message: str, service: str | None = None) -> None:
         """Initialize external service error."""
         super().__init__(message, "EXTERNAL_SERVICE_ERROR", {"service": service})
 
@@ -93,7 +93,7 @@ class RateLimitError(SaaSPlatformException):
 class BusinessLogicError(SaaSPlatformException):
     """Business logic error exception."""
 
-    def __init__(self, message: str, business_rule: Optional[str] = None) -> None:
+    def __init__(self, message: str, business_rule: str | None = None) -> None:
         """Initialize business logic error."""
         super().__init__(
             message, "BUSINESS_LOGIC_ERROR", {"business_rule": business_rule}

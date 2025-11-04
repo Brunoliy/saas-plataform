@@ -147,3 +147,46 @@ def test_proposal_only_for_open_projects(db_session_with_factories, client: Test
 
     # Should fail because project is not OPEN
     assert response.status_code in [400, 403]
+
+
+def test_create_proposal_after_rejection(db_session_with_factories, client: TestClient):
+    """Test that professional can submit new proposal after previous one was rejected."""
+    # Create professional and open project
+    professional = ProfessionalProfileFactory()
+    project = ProjectFactory(status="OPEN")
+    db_session_with_factories.commit()
+
+    # Create first proposal and reject it
+    first_response = client.post(
+        "/api/v1/proposals/",
+        json={
+            "project_id": str(project.id),
+            "proposed_amount": 15000.00,
+            "estimated_days": 30,
+            "description": "First proposal",
+        },
+    )
+    assert first_response.status_code == 201
+    first_proposal_id = first_response.json()["id"]
+
+    # Reject first proposal
+    reject_response = client.post(f"/api/v1/proposals/{first_proposal_id}/reject")
+    assert reject_response.status_code == 200
+
+    # Try to submit second proposal - should succeed
+    second_response = client.post(
+        "/api/v1/proposals/",
+        json={
+            "project_id": str(project.id),
+            "proposed_amount": 12000.00,
+            "estimated_days": 25,
+            "description": "Second proposal after rejection",
+        },
+    )
+
+    assert second_response.status_code == 201
+    data = second_response.json()
+    assert data["project_id"] == str(project.id)
+    assert data["professional_id"] == str(professional.id)
+    assert data["proposed_amount"] == 12000.00
+    assert data["status"] == "SUBMITTED"

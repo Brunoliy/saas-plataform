@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,7 +18,7 @@ class ReviewBase(BaseModel):
     """Base review schema."""
 
     rating: int = Field(ge=1, le=5, description="Rating (1-5)")
-    comment: Optional[str] = None
+    comment: str | None = None
     review_type: ReviewType
 
 
@@ -33,8 +32,8 @@ class ReviewCreate(ReviewBase):
 class ReviewUpdate(BaseModel):
     """Update review schema."""
 
-    rating: Optional[int] = Field(default=None, ge=1, le=5)
-    comment: Optional[str] = None
+    rating: int | None = Field(default=None, ge=1, le=5)
+    comment: str | None = None
 
 
 class ReviewResponse(ReviewBase):

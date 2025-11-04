@@ -1,6 +1,5 @@
 """Review endpoints."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -54,10 +53,10 @@ async def create_review(
 async def list_reviews(
     skip: int = 0,
     limit: int = 20,
-    project_id: Optional[str] = None,
-    reviewer_id: Optional[str] = None,
-    reviewed_id: Optional[str] = None,
-    review_type: Optional[ReviewType] = None,
+    project_id: str | None = None,
+    reviewer_id: str | None = None,
+    reviewed_id: str | None = None,
+    review_type: ReviewType | None = None,
     review_service: ReviewService = Depends(get_review_service),
 ) -> PaginatedResponse[ReviewResponse]:
     """List reviews with pagination and filters (public endpoint)."""

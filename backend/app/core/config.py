@@ -1,7 +1,6 @@
 """Application configuration settings."""
 
 import json
-from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
@@ -71,13 +70,11 @@ class Settings(BaseSettings):
         default=[".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx"]
     )
 
-    aws_access_key_id: Optional[str] = Field(default=None, env="AWS_ACCESS_KEY_ID")
-    aws_secret_access_key: Optional[str] = Field(
-        default=None, env="AWS_SECRET_ACCESS_KEY"
-    )
+    aws_access_key_id: str | None = Field(default=None, env="AWS_ACCESS_KEY_ID")
+    aws_secret_access_key: str | None = Field(default=None, env="AWS_SECRET_ACCESS_KEY")
     aws_region: str = Field(default="sa-east-1", env="AWS_REGION")
-    aws_s3_bucket: Optional[str] = Field(default=None, env="AWS_S3_BUCKET")
-    s3_endpoint_url: Optional[str] = Field(default=None, env="S3_ENDPOINT_URL")
+    aws_s3_bucket: str | None = Field(default=None, env="AWS_S3_BUCKET")
+    s3_endpoint_url: str | None = Field(default=None, env="S3_ENDPOINT_URL")
 
     @field_validator("allowed_file_types", mode="before")
     @classmethod
@@ -99,18 +96,18 @@ class Settings(BaseSettings):
     ai_max_tokens: int = Field(default=1024, env="AI_MAX_TOKENS")
     ai_temperature: float = Field(default=0.7, env="AI_TEMPERATURE")
 
-    huggingface_api_key: Optional[str] = Field(default=None, env="HUGGINGFACE_API_KEY")
-    together_api_key: Optional[str] = Field(default=None, env="TOGETHER_API_KEY")
-    openrouter_api_key: Optional[str] = Field(default=None, env="OPENROUTER_API_KEY")
+    huggingface_api_key: str | None = Field(default=None, env="HUGGINGFACE_API_KEY")
+    together_api_key: str | None = Field(default=None, env="TOGETHER_API_KEY")
+    openrouter_api_key: str | None = Field(default=None, env="OPENROUTER_API_KEY")
 
     # Email Service - Resend
-    resend_api_key: Optional[str] = Field(default=None, env="RESEND_API_KEY")
+    resend_api_key: str | None = Field(default=None, env="RESEND_API_KEY")
     from_email: str = Field(default="noreply@saas-platform.com", env="FROM_EMAIL")
     from_name: str = Field(default="SaaS Platform", env="FROM_NAME")
 
     # Monitoring - Sentry
-    sentry_dsn_backend: Optional[str] = Field(default=None, env="SENTRY_DSN_BACKEND")
-    sentry_dsn_frontend: Optional[str] = Field(default=None, env="SENTRY_DSN_FRONTEND")
+    sentry_dsn_backend: str | None = Field(default=None, env="SENTRY_DSN_BACKEND")
+    sentry_dsn_frontend: str | None = Field(default=None, env="SENTRY_DSN_FRONTEND")
     sentry_environment: str = Field(default="production", env="SENTRY_ENVIRONMENT")
     sentry_traces_sample_rate: float = Field(
         default=0.1, env="SENTRY_TRACES_SAMPLE_RATE"

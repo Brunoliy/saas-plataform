@@ -1,6 +1,5 @@
 """Proposal service."""
 
-from typing import Optional
 from uuid import UUID
 
 from app.models.project import ProjectStatus
@@ -56,13 +55,13 @@ class ProposalService:
 
         return self.proposal_repository.create(professional_id, proposal_data)
 
-    async def get_proposal_by_id(self, proposal_id: UUID) -> Optional[Proposal]:
+    async def get_proposal_by_id(self, proposal_id: UUID) -> Proposal | None:
         """Get proposal by ID."""
         return self.proposal_repository.get_by_id(proposal_id)
 
     async def update_proposal(
         self, proposal_id: UUID, proposal_data: ProposalUpdate
-    ) -> Optional[Proposal]:
+    ) -> Proposal | None:
         """Update proposal."""
         # Verify proposal exists
         proposal = self.proposal_repository.get_by_id(proposal_id)
@@ -119,7 +118,7 @@ class ProposalService:
             status, skip=skip, limit=limit
         )
 
-    async def accept_proposal(self, proposal_id: UUID) -> Optional[Proposal]:
+    async def accept_proposal(self, proposal_id: UUID) -> Proposal | None:
         """Accept a proposal and assign professional to project."""
         # Verify proposal exists
         proposal = self.proposal_repository.get_by_id(proposal_id)
@@ -159,7 +158,7 @@ class ProposalService:
 
         return accepted_proposal
 
-    async def reject_proposal(self, proposal_id: UUID) -> Optional[Proposal]:
+    async def reject_proposal(self, proposal_id: UUID) -> Proposal | None:
         """Reject a proposal."""
         # Verify proposal exists
         proposal = self.proposal_repository.get_by_id(proposal_id)
@@ -174,6 +173,6 @@ class ProposalService:
 
     async def update_ai_score(
         self, proposal_id: UUID, ai_score: float
-    ) -> Optional[Proposal]:
+    ) -> Proposal | None:
         """Update proposal AI score."""
         return self.proposal_repository.update_ai_score(proposal_id, ai_score)

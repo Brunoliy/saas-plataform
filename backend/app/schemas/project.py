@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -23,9 +23,9 @@ class ProjectBase(BaseModel):
 
     title: str = Field(max_length=255)
     description: str
-    requirements: Optional[dict[str, Any]] = None
-    budget: Optional[Decimal] = Field(default=None, ge=0)
-    deadline: Optional[datetime] = None
+    requirements: dict[str, Any] | None = None
+    budget: Decimal | None = Field(default=None, ge=0)
+    deadline: datetime | None = None
 
 
 class ProjectCreate(ProjectBase):
@@ -37,12 +37,12 @@ class ProjectCreate(ProjectBase):
 class ProjectUpdate(BaseModel):
     """Update project schema."""
 
-    title: Optional[str] = Field(default=None, max_length=255)
-    description: Optional[str] = None
-    requirements: Optional[dict[str, Any]] = None
-    budget: Optional[Decimal] = Field(default=None, ge=0)
-    deadline: Optional[datetime] = None
-    status: Optional[ProjectStatus] = None
+    title: str | None = Field(default=None, max_length=255)
+    description: str | None = None
+    requirements: dict[str, Any] | None = None
+    budget: Decimal | None = Field(default=None, ge=0)
+    deadline: datetime | None = None
+    status: ProjectStatus | None = None
 
 
 class ProjectResponse(ProjectBase):
@@ -50,14 +50,12 @@ class ProjectResponse(ProjectBase):
 
     id: UUID
     client_id: UUID
-    client_user_id: Optional[
-        UUID
-    ] = None  # User ID of the client who created the project
+    client_user_id: UUID | None = None  # User ID of the client who created the project
     status: ProjectStatus
-    selected_professional_id: Optional[UUID] = None
-    selected_professional_user_id: Optional[
-        UUID
-    ] = None  # User ID of the selected professional
+    selected_professional_id: UUID | None = None
+    selected_professional_user_id: UUID | None = (
+        None  # User ID of the selected professional
+    )
     created_at: datetime
     updated_at: datetime
 

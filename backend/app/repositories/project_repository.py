@@ -1,6 +1,5 @@
 """Project repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -33,7 +32,7 @@ class ProjectRepository:
         self.db.refresh(db_project)
         return db_project
 
-    def get_by_id(self, project_id: UUID) -> Optional[Project]:
+    def get_by_id(self, project_id: UUID) -> Project | None:
         """Get project by ID (only non-deleted projects)."""
         return (
             self.db.query(Project)
@@ -44,9 +43,7 @@ class ProjectRepository:
             .first()
         )
 
-    def update(
-        self, project_id: UUID, project_data: ProjectUpdate
-    ) -> Optional[Project]:
+    def update(self, project_id: UUID, project_data: ProjectUpdate) -> Project | None:
         """Update project."""
         db_project = self.get_by_id(project_id)
         if not db_project:
@@ -144,7 +141,7 @@ class ProjectRepository:
 
     def assign_professional(
         self, project_id: UUID, professional_id: UUID
-    ) -> Optional[Project]:
+    ) -> Project | None:
         """Assign a professional to a project."""
         db_project = self.get_by_id(project_id)
         if not db_project:
@@ -156,9 +153,7 @@ class ProjectRepository:
         self.db.refresh(db_project)
         return db_project
 
-    def update_status(
-        self, project_id: UUID, status: ProjectStatus
-    ) -> Optional[Project]:
+    def update_status(self, project_id: UUID, status: ProjectStatus) -> Project | None:
         """Update project status."""
         db_project = self.get_by_id(project_id)
         if not db_project:

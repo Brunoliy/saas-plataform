@@ -1,6 +1,5 @@
 """Proposal repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -33,7 +32,7 @@ class ProposalRepository:
         self.db.refresh(db_proposal)
         return db_proposal
 
-    def get_by_id(self, proposal_id: UUID) -> Optional[Proposal]:
+    def get_by_id(self, proposal_id: UUID) -> Proposal | None:
         """Get proposal by ID (only non-deleted proposals)."""
         return (
             self.db.query(Proposal)
@@ -43,7 +42,7 @@ class ProposalRepository:
 
     def update(
         self, proposal_id: UUID, proposal_data: ProposalUpdate
-    ) -> Optional[Proposal]:
+    ) -> Proposal | None:
         """Update proposal."""
         db_proposal = self.get_by_id(proposal_id)
         if not db_proposal:
@@ -130,7 +129,7 @@ class ProposalRepository:
             .all()
         )
 
-    def accept_proposal(self, proposal_id: UUID) -> Optional[Proposal]:
+    def accept_proposal(self, proposal_id: UUID) -> Proposal | None:
         """Accept a proposal."""
         db_proposal = self.get_by_id(proposal_id)
         if not db_proposal:
@@ -141,7 +140,7 @@ class ProposalRepository:
         self.db.refresh(db_proposal)
         return db_proposal
 
-    def reject_proposal(self, proposal_id: UUID) -> Optional[Proposal]:
+    def reject_proposal(self, proposal_id: UUID) -> Proposal | None:
         """Reject a proposal."""
         db_proposal = self.get_by_id(proposal_id)
         if not db_proposal:
@@ -152,7 +151,7 @@ class ProposalRepository:
         self.db.refresh(db_proposal)
         return db_proposal
 
-    def update_ai_score(self, proposal_id: UUID, ai_score: float) -> Optional[Proposal]:
+    def update_ai_score(self, proposal_id: UUID, ai_score: float) -> Proposal | None:
         """Update proposal AI score."""
         db_proposal = self.get_by_id(proposal_id)
         if not db_proposal:
@@ -165,14 +164,15 @@ class ProposalRepository:
 
     def get_proposal_by_project_and_professional(
         self, project_id: UUID, professional_id: UUID
-    ) -> Optional[Proposal]:
-        """Get proposal by project and professional."""
+    ) -> Proposal | None:
+        """Get active proposal by project and professional (only SUBMITTED status)."""
         return (
             self.db.query(Proposal)
             .filter(
                 and_(
                     Proposal.project_id == project_id,
                     Proposal.professional_id == professional_id,
+                    Proposal.status == ProposalStatus.SUBMITTED,
                     Proposal.deleted_at.is_(None),
                 )
             )

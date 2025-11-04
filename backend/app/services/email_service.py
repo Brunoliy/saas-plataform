@@ -1,7 +1,5 @@
 """Email Service using Resend API."""
 
-from typing import Optional
-
 import resend
 
 from app.core.config import settings
@@ -26,8 +24,8 @@ class EmailService:
         to: list[str],
         subject: str,
         html: str,
-        from_email: Optional[str] = None,
-        from_name: Optional[str] = None,
+        from_email: str | None = None,
+        from_name: str | None = None,
     ) -> dict:
         """
         Send email using Resend.

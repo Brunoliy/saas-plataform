@@ -1,6 +1,5 @@
 """Review repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -33,7 +32,7 @@ class ReviewRepository:
         self.db.refresh(db_review)
         return db_review
 
-    def get_by_id(self, review_id: UUID) -> Optional[Review]:
+    def get_by_id(self, review_id: UUID) -> Review | None:
         """Get review by ID (only non-deleted reviews)."""
         return (
             self.db.query(Review)
@@ -41,7 +40,7 @@ class ReviewRepository:
             .first()
         )
 
-    def update(self, review_id: UUID, review_data: ReviewUpdate) -> Optional[Review]:
+    def update(self, review_id: UUID, review_data: ReviewUpdate) -> Review | None:
         """Update review."""
         db_review = self.get_by_id(review_id)
         if not db_review:
@@ -139,7 +138,7 @@ class ReviewRepository:
             .all()
         )
 
-    def get_average_rating_for_user(self, user_id: UUID) -> Optional[float]:
+    def get_average_rating_for_user(self, user_id: UUID) -> float | None:
         """Get average rating for a user."""
         from sqlalchemy import func
 
@@ -161,7 +160,7 @@ class ReviewRepository:
 
     def get_review_by_project_and_reviewer(
         self, project_id: UUID, reviewer_id: UUID
-    ) -> Optional[Review]:
+    ) -> Review | None:
         """Get review by project and reviewer."""
         return (
             self.db.query(Review)
