@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 
 class ClientLinkBase(BaseModel):
@@ -83,3 +83,8 @@ class ClientProfileResponse(ClientProfileBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("average_rating")
+    def serialize_decimal_to_float(self, value: Decimal | None) -> float | None:
+        """Convert Decimal to float for JSON serialization."""
+        return float(value) if value is not None else None
