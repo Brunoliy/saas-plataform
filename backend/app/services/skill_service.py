@@ -1,6 +1,5 @@
 """Skill service."""
 
-from typing import Optional
 from uuid import UUID
 
 from app.models.skill import Skill
@@ -24,17 +23,17 @@ class SkillService:
 
         return self.skill_repository.create(skill_data)
 
-    async def get_skill_by_id(self, skill_id: UUID) -> Optional[Skill]:
+    async def get_skill_by_id(self, skill_id: UUID) -> Skill | None:
         """Get skill by ID."""
         return self.skill_repository.get_by_id(skill_id)
 
-    async def get_skill_by_name(self, name: str) -> Optional[Skill]:
+    async def get_skill_by_name(self, name: str) -> Skill | None:
         """Get skill by name."""
         return self.skill_repository.get_by_name(name)
 
     async def update_skill(
         self, skill_id: UUID, skill_data: SkillUpdate
-    ) -> Optional[Skill]:
+    ) -> Skill | None:
         """Update skill."""
         # If updating name, check for duplicates
         if skill_data.name:
@@ -68,7 +67,7 @@ class SkillService:
         """Get active skills."""
         return self.skill_repository.get_active_skills(skip=skip, limit=limit)
 
-    async def activate_skill(self, skill_id: UUID) -> Optional[Skill]:
+    async def activate_skill(self, skill_id: UUID) -> Skill | None:
         """Activate skill."""
         skill = self.skill_repository.get_by_id(skill_id)
         if not skill:
@@ -76,7 +75,7 @@ class SkillService:
 
         return self.skill_repository.activate_skill(skill_id)
 
-    async def deactivate_skill(self, skill_id: UUID) -> Optional[Skill]:
+    async def deactivate_skill(self, skill_id: UUID) -> Skill | None:
         """Deactivate skill."""
         skill = self.skill_repository.get_by_id(skill_id)
         if not skill:

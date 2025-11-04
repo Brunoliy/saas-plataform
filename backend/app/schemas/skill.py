@@ -1,7 +1,6 @@
 """Skill schemas."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -12,7 +11,7 @@ class SkillBase(BaseModel):
 
     name: str = Field(max_length=100)
     category: str = Field(max_length=50)
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class SkillCreate(SkillBase):
@@ -24,10 +23,10 @@ class SkillCreate(SkillBase):
 class SkillUpdate(BaseModel):
     """Update skill schema."""
 
-    name: Optional[str] = Field(default=None, max_length=100)
-    category: Optional[str] = Field(default=None, max_length=50)
-    description: Optional[str] = None
-    active: Optional[bool] = None
+    name: str | None = Field(default=None, max_length=100)
+    category: str | None = Field(default=None, max_length=50)
+    description: str | None = None
+    active: bool | None = None
 
 
 class SkillResponse(SkillBase):

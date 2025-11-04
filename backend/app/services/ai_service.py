@@ -204,38 +204,38 @@ class AIService:
                 project.description, professional.description
             )
             if description_score > 70:
-                positive_factors[
-                    "description_match"
-                ] = f"Excellent semantic match ({description_score:.1f}%)"
+                positive_factors["description_match"] = (
+                    f"Excellent semantic match ({description_score:.1f}%)"
+                )
             elif description_score > 50:
-                positive_factors[
-                    "description_match"
-                ] = f"Good semantic match ({description_score:.1f}%)"
+                positive_factors["description_match"] = (
+                    f"Good semantic match ({description_score:.1f}%)"
+                )
             else:
-                negative_factors[
-                    "description_mismatch"
-                ] = f"Low description match ({description_score:.1f}%)"
+                negative_factors["description_mismatch"] = (
+                    f"Low description match ({description_score:.1f}%)"
+                )
 
         # Component 2: Skills semantic match (30% weight)
         skills_score, matched_skills = await self._calculate_skills_semantic_match(
             project, professional_skills
         )
         if matched_skills:
-            positive_factors[
-                "matched_skills"
-            ] = f"Matched skills: {', '.join(matched_skills[:5])}"
+            positive_factors["matched_skills"] = (
+                f"Matched skills: {', '.join(matched_skills[:5])}"
+            )
         if skills_score > 70:
-            positive_factors[
-                "skills_match"
-            ] = f"Strong skills match ({skills_score:.1f}%)"
+            positive_factors["skills_match"] = (
+                f"Strong skills match ({skills_score:.1f}%)"
+            )
         elif skills_score > 50:
-            positive_factors[
-                "skills_match"
-            ] = f"Moderate skills match ({skills_score:.1f}%)"
+            positive_factors["skills_match"] = (
+                f"Moderate skills match ({skills_score:.1f}%)"
+            )
         else:
-            negative_factors[
-                "skills_mismatch"
-            ] = f"Weak skills match ({skills_score:.1f}%)"
+            negative_factors["skills_mismatch"] = (
+                f"Weak skills match ({skills_score:.1f}%)"
+            )
 
         # Component 3: Experience/Rating (20% weight)
         experience_score = 50.0
@@ -253,9 +253,9 @@ class AIService:
         review_score = 0.0
         if professional.total_reviews >= 10:
             review_score = min((professional.total_reviews / 50) * 100, 100)
-            positive_factors[
-                "reviews"
-            ] = f"{professional.total_reviews} reviews (experienced professional)"
+            positive_factors["reviews"] = (
+                f"{professional.total_reviews} reviews (experienced professional)"
+            )
 
         # Weighted final score
         final_score = (
@@ -290,9 +290,9 @@ class AIService:
         if professional_skills:
             skill_bonus = min(len(professional_skills) * 2, 20)
             base_score += skill_bonus
-            positive_factors[
-                "skills_count"
-            ] = f"Has {len(professional_skills)} skills (+{skill_bonus} points)"
+            positive_factors["skills_count"] = (
+                f"Has {len(professional_skills)} skills (+{skill_bonus} points)"
+            )
 
             # Factor 2: High proficiency levels (up to +10 points)
             avg_proficiency = sum(
@@ -301,18 +301,18 @@ class AIService:
             if avg_proficiency >= 4:
                 proficiency_bonus = 10
                 base_score += proficiency_bonus
-                positive_factors[
-                    "proficiency"
-                ] = f"High average proficiency ({avg_proficiency:.1f}/5) (+{proficiency_bonus} points)"
+                positive_factors["proficiency"] = (
+                    f"High average proficiency ({avg_proficiency:.1f}/5) (+{proficiency_bonus} points)"
+                )
 
             # Factor 3: Certified skills (up to +10 points)
             certified_count = sum(1 for skill in professional_skills if skill.certified)
             if certified_count > 0:
                 cert_bonus = min(certified_count * 5, 10)
                 base_score += cert_bonus
-                positive_factors[
-                    "certifications"
-                ] = f"{certified_count} certified skills (+{cert_bonus} points)"
+                positive_factors["certifications"] = (
+                    f"{certified_count} certified skills (+{cert_bonus} points)"
+                )
         else:
             negative_factors["no_skills"] = "No skills listed (-10 points)"
             base_score -= 10
@@ -323,29 +323,29 @@ class AIService:
             if rating >= 4.5:
                 rating_bonus = 15
                 base_score += rating_bonus
-                positive_factors[
-                    "rating"
-                ] = f"Excellent rating ({rating:.1f}/5) (+{rating_bonus} points)"
+                positive_factors["rating"] = (
+                    f"Excellent rating ({rating:.1f}/5) (+{rating_bonus} points)"
+                )
             elif rating >= 4.0:
                 rating_bonus = 10
                 base_score += rating_bonus
-                positive_factors[
-                    "rating"
-                ] = f"Good rating ({rating:.1f}/5) (+{rating_bonus} points)"
+                positive_factors["rating"] = (
+                    f"Good rating ({rating:.1f}/5) (+{rating_bonus} points)"
+                )
             elif rating < 3.0:
                 rating_penalty = 10
                 base_score -= rating_penalty
-                negative_factors[
-                    "low_rating"
-                ] = f"Low rating ({rating:.1f}/5) (-{rating_penalty} points)"
+                negative_factors["low_rating"] = (
+                    f"Low rating ({rating:.1f}/5) (-{rating_penalty} points)"
+                )
 
         # Factor 5: Number of reviews (up to +5 points)
         if professional.total_reviews >= 10:
             review_bonus = 5
             base_score += review_bonus
-            positive_factors[
-                "reviews"
-            ] = f"{professional.total_reviews} reviews (+{review_bonus} points)"
+            positive_factors["reviews"] = (
+                f"{professional.total_reviews} reviews (+{review_bonus} points)"
+            )
 
         # Ensure score is between 0 and 100
         final_score = max(0.0, min(100.0, base_score))

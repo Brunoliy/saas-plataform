@@ -1,6 +1,5 @@
 """Professional repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -44,7 +43,7 @@ class ProfessionalRepository:
         self.db.refresh(db_profile)
         return db_profile
 
-    def get_by_id(self, profile_id: UUID) -> Optional[ProfessionalProfile]:
+    def get_by_id(self, profile_id: UUID) -> ProfessionalProfile | None:
         """Get professional profile by ID (only non-deleted profiles)."""
         return (
             self.db.query(ProfessionalProfile)
@@ -57,7 +56,7 @@ class ProfessionalRepository:
             .first()
         )
 
-    def get_by_user_id(self, user_id: UUID) -> Optional[ProfessionalProfile]:
+    def get_by_user_id(self, user_id: UUID) -> ProfessionalProfile | None:
         """Get professional profile by user ID (only non-deleted profiles)."""
         return (
             self.db.query(ProfessionalProfile)
@@ -72,7 +71,7 @@ class ProfessionalRepository:
 
     def update(
         self, profile_id: UUID, profile_data: ProfessionalProfileUpdate
-    ) -> Optional[ProfessionalProfile]:
+    ) -> ProfessionalProfile | None:
         """Update professional profile."""
         db_profile = self.get_by_id(profile_id)
         if not db_profile:
@@ -118,7 +117,7 @@ class ProfessionalRepository:
 
     def update_rating(
         self, profile_id: UUID, average_rating: float, total_reviews: int
-    ) -> Optional[ProfessionalProfile]:
+    ) -> ProfessionalProfile | None:
         """Update professional rating."""
         db_profile = self.get_by_id(profile_id)
         if not db_profile:
@@ -135,9 +134,9 @@ class ProfessionalRepository:
         professional_id: UUID,
         skill_id: UUID,
         proficiency_level: int,
-        years_experience: Optional[int] = None,
+        years_experience: int | None = None,
         certified: bool = False,
-    ) -> Optional[ProfessionalSkill]:
+    ) -> ProfessionalSkill | None:
         """Add a skill to professional profile."""
         db_skill = ProfessionalSkill(
             professional_id=professional_id,
@@ -203,7 +202,7 @@ class ProfessionalRepository:
 
     def update_link(
         self, link_id: UUID, link_update: ProfessionalLinkUpdate
-    ) -> Optional[ProfessionalLink]:
+    ) -> ProfessionalLink | None:
         """Update a social link."""
         db_link = (
             self.db.query(ProfessionalLink)

@@ -30,6 +30,7 @@ const ProjectDetailPage = () => {
   const [proposalDays, setProposalDays] = useState('')
   const [isSubmittingProposal, setIsSubmittingProposal] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
+  const [hasProfessionalProfile, setHasProfessionalProfile] = useState(false)
 
   const checkIfApplied = useCallback(async () => {
     if (!user || !id) return
@@ -37,15 +38,19 @@ const ProjectDetailPage = () => {
     try {
       const professionalProfile = await professionalService.getMyProfile()
       if (professionalProfile) {
+        setHasProfessionalProfile(true)
         const proposals = await proposalService.getProposals({
           project_id: id,
           professional_id: professionalProfile.id,
           limit: 1,
         })
         setHasApplied(proposals.items.length > 0)
+      } else {
+        setHasProfessionalProfile(false)
       }
     } catch (error) {
       // User might not have a professional profile
+      setHasProfessionalProfile(false)
       console.log('Could not check proposal status:', error)
     }
   }, [id, user])
@@ -164,12 +169,23 @@ const ProjectDetailPage = () => {
     if (!project) return
 
     try {
-      await projectService.updateProject(project.id, { status: newStatus })
+      // Use specific endpoints for professional status changes
+      if (newStatus === 'IN_PROGRESS') {
+        await projectService.startProject(project.id)
+      } else if (newStatus === 'COMPLETED') {
+        await projectService.completeProjectByProfessional(project.id)
+      } else {
+        // Fallback to updateProject for other status changes (if needed)
+        await projectService.updateProject(project.id, { status: newStatus })
+      }
       toast.success('Project status updated successfully!')
       loadProject()
     } catch (error) {
       console.error('Failed to update project status:', error)
-      toast.error('Failed to update project status')
+      const errorMessage = (error && typeof error === 'object' && 'response' in error &&
+        (error as { response?: { data?: { detail?: string } } }).response?.data?.detail) ||
+        'Failed to update project status'
+      toast.error(String(errorMessage))
     }
   }
 
@@ -203,6 +219,9 @@ const ProjectDetailPage = () => {
   // Check if professional can apply to project
   const canApplyToProject = () => {
     if (!project || !user) return false
+
+    // User must have a professional profile
+    if (!hasProfessionalProfile) return false
 
     // Project must be OPEN
     if (project.status !== 'OPEN') return false
@@ -531,7 +550,7 @@ const ProjectDetailPage = () => {
         </div>
       )}
 
-      {hasApplied && !canApplyToProject() && project.status === 'OPEN' && (
+      {hasProfessionalProfile && hasApplied && project.status === 'OPEN' && (
         <div className="card mb-6">
           <div className="card-content">
             <div className="text-center py-4">

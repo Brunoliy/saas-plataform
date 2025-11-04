@@ -69,4 +69,14 @@ export const projectService = {
     const response = await apiClient.patch<Project>(`/projects/${id}/cancel`)
     return response.data
   },
+
+  async startProject(id: string): Promise<Project> {
+    const response = await apiClient.patch<Project>(`/projects/${id}/start`)
+    return response.data
+  },
+
+  async completeProjectByProfessional(id: string): Promise<Project> {
+    const response = await apiClient.patch<Project>(`/projects/${id}/complete-by-professional`)
+    return response.data
+  },
 }

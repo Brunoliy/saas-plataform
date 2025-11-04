@@ -1,6 +1,5 @@
 """Project service."""
 
-from typing import Optional
 from uuid import UUID
 
 from app.models.project import Project, ProjectStatus
@@ -35,13 +34,13 @@ class ProjectService:
 
         return self.project_repository.create(client_id, project_data)
 
-    async def get_project_by_id(self, project_id: UUID) -> Optional[Project]:
+    async def get_project_by_id(self, project_id: UUID) -> Project | None:
         """Get project by ID."""
         return self.project_repository.get_by_id(project_id)
 
     async def update_project(
         self, project_id: UUID, project_data: ProjectUpdate
-    ) -> Optional[Project]:
+    ) -> Project | None:
         """Update project."""
         return self.project_repository.update(project_id, project_data)
 
@@ -87,7 +86,7 @@ class ProjectService:
 
     async def assign_professional(
         self, project_id: UUID, professional_id: UUID
-    ) -> Optional[Project]:
+    ) -> Project | None:
         """Assign a professional to a project."""
         # Verify project exists
         project = self.project_repository.get_by_id(project_id)
@@ -109,7 +108,7 @@ class ProjectService:
 
     async def update_status(
         self, project_id: UUID, status: ProjectStatus
-    ) -> Optional[Project]:
+    ) -> Project | None:
         """Update project status."""
         # Verify project exists
         project = self.project_repository.get_by_id(project_id)
@@ -131,10 +130,52 @@ class ProjectService:
 
         return self.project_repository.update_status(project_id, status)
 
-    async def complete_project(self, project_id: UUID) -> Optional[Project]:
+    async def complete_project(self, project_id: UUID) -> Project | None:
         """Mark project as completed."""
         return await self.update_status(project_id, ProjectStatus.COMPLETED)
 
-    async def cancel_project(self, project_id: UUID) -> Optional[Project]:
+    async def cancel_project(self, project_id: UUID) -> Project | None:
         """Mark project as cancelled."""
         return await self.update_status(project_id, ProjectStatus.CANCELLED)
+
+    async def start_project(
+        self, project_id: UUID, professional_id: UUID
+    ) -> Project | None:
+        """Start project (professional only - OPEN -> IN_PROGRESS)."""
+        # Verify project exists
+        project = self.project_repository.get_by_id(project_id)
+        if not project:
+            raise ValueError("Project not found")
+
+        # Verify professional is assigned to this project
+        if project.selected_professional_id != professional_id:
+            raise ValueError("Only the assigned professional can start this project")
+
+        # Verify project is in OPEN status
+        if project.status != ProjectStatus.OPEN:
+            raise ValueError(
+                f"Project must be OPEN to start. Current status: {project.status}"
+            )
+
+        return await self.update_status(project_id, ProjectStatus.IN_PROGRESS)
+
+    async def complete_project_by_professional(
+        self, project_id: UUID, professional_id: UUID
+    ) -> Project | None:
+        """Complete project (professional only - IN_PROGRESS -> COMPLETED)."""
+        # Verify project exists
+        project = self.project_repository.get_by_id(project_id)
+        if not project:
+            raise ValueError("Project not found")
+
+        # Verify professional is assigned to this project
+        if project.selected_professional_id != professional_id:
+            raise ValueError("Only the assigned professional can complete this project")
+
+        # Verify project is in IN_PROGRESS status
+        if project.status != ProjectStatus.IN_PROGRESS:
+            raise ValueError(
+                f"Project must be IN_PROGRESS to complete. Current status: {project.status}"
+            )
+
+        return await self.update_status(project_id, ProjectStatus.COMPLETED)

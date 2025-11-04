@@ -3,7 +3,6 @@
 import asyncio
 import hashlib
 import logging
-from typing import Optional
 
 import httpx
 import numpy as np
@@ -29,7 +28,7 @@ class EmbeddingService:
                 "Hugging Face API key not configured. Embeddings will not be available."
             )
 
-    async def embed_text(self, text: str) -> Optional[list[float]]:
+    async def embed_text(self, text: str) -> list[float] | None:
         """
         Generate embedding vector for text using Hugging Face API.
 
@@ -104,7 +103,7 @@ class EmbeddingService:
         logger.error("Max retries exceeded for embedding generation")
         return None
 
-    async def embed_texts(self, texts: list[str]) -> list[Optional[list[float]]]:
+    async def embed_texts(self, texts: list[str]) -> list[list[float] | None]:
         """
         Generate embeddings for multiple texts in parallel.
 
@@ -117,9 +116,7 @@ class EmbeddingService:
         tasks = [self.embed_text(text) for text in texts]
         return await asyncio.gather(*tasks)
 
-    def cosine_similarity(
-        self, vec1: list[float], vec2: list[float]
-    ) -> Optional[float]:
+    def cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float | None:
         """
         Calculate cosine similarity between two vectors.
 

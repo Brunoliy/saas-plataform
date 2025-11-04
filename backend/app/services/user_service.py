@@ -1,6 +1,5 @@
 """User service."""
 
-from typing import Optional
 from uuid import UUID
 
 from app.core.exceptions import ConflictError, NotFoundError
@@ -34,7 +33,7 @@ class UserService:
 
         return UserResponse.model_validate(db_user)
 
-    def get_user_by_email(self, email: str) -> Optional[UserResponse]:
+    def get_user_by_email(self, email: str) -> UserResponse | None:
         """Get user by email."""
         db_user = self.user_repository.get_by_email(email)
         if not db_user:

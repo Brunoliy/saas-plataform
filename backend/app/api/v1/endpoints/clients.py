@@ -1,6 +1,5 @@
 """Client endpoints."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -49,7 +48,7 @@ async def create_client_profile(
 async def list_clients(
     skip: int = 0,
     limit: int = 20,
-    business_sector: Optional[str] = None,
+    business_sector: str | None = None,
     client_service: ClientService = Depends(get_client_service),
 ) -> PaginatedResponse[ClientProfileResponse]:
     """List clients with pagination (public endpoint)."""

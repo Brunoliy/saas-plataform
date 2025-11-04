@@ -1,6 +1,5 @@
 """Client service."""
 
-from typing import Optional
 from uuid import UUID
 
 from app.models.client import ClientLink, ClientProfile
@@ -32,17 +31,17 @@ class ClientService:
         # Create profile
         return self.client_repository.create(user_id, profile_data)
 
-    async def get_profile_by_id(self, profile_id: UUID) -> Optional[ClientProfile]:
+    async def get_profile_by_id(self, profile_id: UUID) -> ClientProfile | None:
         """Get client profile by ID."""
         return self.client_repository.get_by_id(profile_id)
 
-    async def get_profile_by_user_id(self, user_id: UUID) -> Optional[ClientProfile]:
+    async def get_profile_by_user_id(self, user_id: UUID) -> ClientProfile | None:
         """Get client profile by user ID."""
         return self.client_repository.get_by_user_id(user_id)
 
     async def update_profile(
         self, profile_id: UUID, profile_data: ClientProfileUpdate
-    ) -> Optional[ClientProfile]:
+    ) -> ClientProfile | None:
         """Update client profile."""
         return self.client_repository.update(profile_id, profile_data)
 
@@ -68,7 +67,7 @@ class ClientService:
 
     async def update_rating(
         self, profile_id: UUID, average_rating: float, total_reviews: int
-    ) -> Optional[ClientProfile]:
+    ) -> ClientProfile | None:
         """Update client rating."""
         return self.client_repository.update_rating(
             profile_id, average_rating, total_reviews
@@ -82,7 +81,7 @@ class ClientService:
 
     async def update_link(
         self, link_id: UUID, link_update: ClientLinkUpdate
-    ) -> Optional[ClientLink]:
+    ) -> ClientLink | None:
         """Update a social link."""
         return self.client_repository.update_link(link_id, link_update)
 

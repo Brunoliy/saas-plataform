@@ -1,6 +1,5 @@
 """Review service."""
 
-from typing import Optional
 from uuid import UUID
 
 from app.models.project import ProjectStatus
@@ -115,13 +114,13 @@ class ReviewService:
                     client.id, average_rating, total_reviews
                 )
 
-    async def get_review_by_id(self, review_id: UUID) -> Optional[Review]:
+    async def get_review_by_id(self, review_id: UUID) -> Review | None:
         """Get review by ID."""
         return self.review_repository.get_by_id(review_id)
 
     async def update_review(
         self, review_id: UUID, review_data: ReviewUpdate
-    ) -> Optional[Review]:
+    ) -> Review | None:
         """Update review."""
         review = self.review_repository.update(review_id, review_data)
 
@@ -185,6 +184,6 @@ class ReviewService:
             review_type, skip=skip, limit=limit
         )
 
-    async def get_average_rating_for_user(self, user_id: UUID) -> Optional[float]:
+    async def get_average_rating_for_user(self, user_id: UUID) -> float | None:
         """Get average rating for a user."""
         return self.review_repository.get_average_rating_for_user(user_id)

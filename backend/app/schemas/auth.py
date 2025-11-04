@@ -1,7 +1,5 @@
 """Authentication schemas."""
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -17,9 +15,9 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Token data schema."""
 
-    user_id: Optional[str] = None
-    email: Optional[str] = None
-    account_type: Optional[str] = None
+    user_id: str | None = None
+    email: str | None = None
+    account_type: str | None = None
 
 
 class UserLogin(BaseModel):

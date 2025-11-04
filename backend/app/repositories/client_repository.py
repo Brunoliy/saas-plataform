@@ -1,6 +1,5 @@
 """Client repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -39,7 +38,7 @@ class ClientRepository:
         self.db.refresh(db_profile)
         return db_profile
 
-    def get_by_id(self, profile_id: UUID) -> Optional[ClientProfile]:
+    def get_by_id(self, profile_id: UUID) -> ClientProfile | None:
         """Get client profile by ID (only non-deleted profiles)."""
         return (
             self.db.query(ClientProfile)
@@ -49,7 +48,7 @@ class ClientRepository:
             .first()
         )
 
-    def get_by_user_id(self, user_id: UUID) -> Optional[ClientProfile]:
+    def get_by_user_id(self, user_id: UUID) -> ClientProfile | None:
         """Get client profile by user ID (only non-deleted profiles)."""
         return (
             self.db.query(ClientProfile)
@@ -63,7 +62,7 @@ class ClientRepository:
 
     def update(
         self, profile_id: UUID, profile_data: ClientProfileUpdate
-    ) -> Optional[ClientProfile]:
+    ) -> ClientProfile | None:
         """Update client profile."""
         db_profile = self.get_by_id(profile_id)
         if not db_profile:
@@ -109,7 +108,7 @@ class ClientRepository:
 
     def update_rating(
         self, profile_id: UUID, average_rating: float, total_reviews: int
-    ) -> Optional[ClientProfile]:
+    ) -> ClientProfile | None:
         """Update client rating."""
         db_profile = self.get_by_id(profile_id)
         if not db_profile:
@@ -153,7 +152,7 @@ class ClientRepository:
 
     def update_link(
         self, link_id: UUID, link_update: ClientLinkUpdate
-    ) -> Optional[ClientLink]:
+    ) -> ClientLink | None:
         """Update a social link."""
         db_link = (
             self.db.query(ClientLink)

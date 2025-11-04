@@ -1,6 +1,5 @@
 """AI Analysis repository for database operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -21,9 +20,9 @@ class AIRepository:
         project_id: UUID,
         professional_id: UUID,
         compatibility_score: float,
-        positive_factors: Optional[dict] = None,
-        negative_factors: Optional[dict] = None,
-        recommendation: Optional[str] = None,
+        positive_factors: dict | None = None,
+        negative_factors: dict | None = None,
+        recommendation: str | None = None,
         model_version: str = "v1.0",
         analysis_date: str = "",
     ) -> AIAnalysis:
@@ -44,7 +43,7 @@ class AIRepository:
         self.db.refresh(db_analysis)
         return db_analysis
 
-    def get_by_id(self, analysis_id: UUID) -> Optional[AIAnalysis]:
+    def get_by_id(self, analysis_id: UUID) -> AIAnalysis | None:
         """Get AI analysis by ID (only non-deleted analyses)."""
         return (
             self.db.query(AIAnalysis)
@@ -55,11 +54,11 @@ class AIRepository:
     def update(
         self,
         analysis_id: UUID,
-        compatibility_score: Optional[float] = None,
-        positive_factors: Optional[dict] = None,
-        negative_factors: Optional[dict] = None,
-        recommendation: Optional[str] = None,
-    ) -> Optional[AIAnalysis]:
+        compatibility_score: float | None = None,
+        positive_factors: dict | None = None,
+        negative_factors: dict | None = None,
+        recommendation: str | None = None,
+    ) -> AIAnalysis | None:
         """Update AI analysis."""
         db_analysis = self.get_by_id(analysis_id)
         if not db_analysis:
@@ -143,7 +142,7 @@ class AIRepository:
 
     def get_analysis_by_project_and_professional(
         self, project_id: UUID, professional_id: UUID
-    ) -> Optional[AIAnalysis]:
+    ) -> AIAnalysis | None:
         """Get AI analysis by project and professional."""
         return (
             self.db.query(AIAnalysis)

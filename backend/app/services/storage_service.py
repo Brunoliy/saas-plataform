@@ -3,7 +3,6 @@
 import mimetypes
 import uuid
 from datetime import datetime
-from typing import Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -36,7 +35,7 @@ class StorageService:
         file_content: bytes,
         filename: str,
         folder: str = "uploads",
-        content_type: Optional[str] = None,
+        content_type: str | None = None,
     ) -> dict:
         """
         Upload file to S3.
