@@ -260,3 +260,84 @@ def test_delete_review(db_session_with_factories, client: TestClient):
     # Verify review is deleted
     response = client.get(f"/api/v1/reviews/{review.id}")
     assert response.status_code == 404
+
+
+def test_both_parties_can_review_completed_project(
+    db_session_with_factories, client: TestClient
+):
+    """Test that both client and professional can review a completed project."""
+    # Create completed project with client and professional
+    client_profile = ClientProfileFactory()
+    professional = ProfessionalProfileFactory()
+    project = ProjectFactory(
+        client=client_profile,
+        selected_professional_id=professional.id,
+        status="COMPLETED",
+    )
+    db_session_with_factories.commit()
+
+    # Client reviews professional
+    client_review_response = client.post(
+        "/api/v1/reviews/",
+        json={
+            "project_id": str(project.id),
+            "reviewed_id": str(professional.user_id),
+            "rating": 5,
+            "comment": "Great work!",
+            "review_type": "client_to_professional",
+        },
+    )
+
+    assert client_review_response.status_code == 201
+    client_review_data = client_review_response.json()
+    assert client_review_data["reviewer_id"] == str(client_profile.user_id)
+    assert client_review_data["reviewed_id"] == str(professional.user_id)
+
+    # Professional reviews client
+    professional_review_response = client.post(
+        "/api/v1/reviews/",
+        json={
+            "project_id": str(project.id),
+            "reviewed_id": str(client_profile.user_id),
+            "rating": 4,
+            "comment": "Good client!",
+            "review_type": "professional_to_client",
+        },
+    )
+
+    assert professional_review_response.status_code == 201
+    professional_review_data = professional_review_response.json()
+    assert professional_review_data["reviewer_id"] == str(professional.user_id)
+    assert professional_review_data["reviewed_id"] == str(client_profile.user_id)
+
+
+def test_third_party_cannot_review_project(
+    db_session_with_factories, client: TestClient
+):
+    """Test that users not part of a project cannot review it."""
+    # Create completed project with client and professional
+    client_profile = ClientProfileFactory()
+    professional = ProfessionalProfileFactory()
+    _ = ProfessionalProfileFactory()  # Third party professional
+    project = ProjectFactory(
+        client=client_profile,
+        selected_professional_id=professional.id,
+        status="COMPLETED",
+    )
+    db_session_with_factories.commit()
+
+    # Third party tries to review
+    response = client.post(
+        "/api/v1/reviews/",
+        json={
+            "project_id": str(project.id),
+            "reviewed_id": str(professional.user_id),
+            "rating": 5,
+            "comment": "I'm not part of this project",
+            "review_type": "client_to_professional",
+        },
+    )
+
+    # Should fail because third party is not part of the project
+    assert response.status_code in [400, 403]
+    assert "part of" in response.json()["detail"].lower()
