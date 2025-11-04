@@ -12,6 +12,7 @@ import CompaniesPage from '@/pages/CompaniesPage'
 import CompanyDetailPage from '@/pages/CompanyDetailPage'
 import ProfilePage from '@/pages/ProfilePage'
 import UsersPage from '@/pages/UsersPage'
+import RecommendedProjectsPage from '@/pages/RecommendedProjectsPage'
 import ProtectedRoute from '@/components/ProtectedRoute'
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="projects/:id" element={<ProjectDetailPage />} />
+          <Route path="recommended-projects" element={<RecommendedProjectsPage />} />
           <Route path="professionals" element={<ProfessionalsPage />} />
           <Route path="professionals/:id" element={<ProfessionalDetailPage />} />
           <Route path="companies" element={<CompaniesPage />} />

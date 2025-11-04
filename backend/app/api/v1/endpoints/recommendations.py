@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user_id
@@ -11,8 +12,25 @@ from app.repositories.ai_repository import AIRepository
 from app.repositories.professional_repository import ProfessionalRepository
 from app.repositories.project_repository import ProjectRepository
 from app.services.ai_service import AIService
+from app.services.chat_service import ChatService
 
 router = APIRouter()
+
+
+class ChatRequest(BaseModel):
+    """Chat request schema."""
+
+    message: str
+    context: dict | None = None
+    user_type: str = "professional"
+
+
+class ChatResponse(BaseModel):
+    """Chat response schema."""
+
+    response: str
+    suggestions: list[str] = []
+    data: dict | None = None
 
 
 def get_ai_service(db: Session = Depends(get_db)) -> AIService:
@@ -21,6 +39,11 @@ def get_ai_service(db: Session = Depends(get_db)) -> AIService:
     project_repo = ProjectRepository(db)
     professional_repo = ProfessionalRepository(db)
     return AIService(ai_repo, project_repo, professional_repo)
+
+
+def get_chat_service(ai_service: AIService = Depends(get_ai_service)) -> ChatService:
+    """Dependency to get chat service."""
+    return ChatService(ai_service)
 
 
 @router.get("/projects/{project_id}/recommendations")
@@ -228,3 +251,38 @@ async def get_analysis(
         "analysis_date": analysis.analysis_date,
         "created_at": analysis.created_at,
     }
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat_with_ai(
+    request: ChatRequest,
+    current_user_id: str = Depends(get_current_user_id),
+    chat_service: ChatService = Depends(get_chat_service),
+) -> ChatResponse:
+    """
+    Chat with AI about recommendations and matches.
+
+    Supports intelligent Q&A about:
+    - Why something was recommended
+    - Comparing options
+    - Finding best matches
+    - Explaining scores
+    - General questions about the system
+
+    Requires authentication.
+    """
+    try:
+        result = await chat_service.chat(
+            message=request.message,
+            context=request.context,
+            user_type=request.user_type,
+        )
+
+        return ChatResponse(
+            response=result.get("response", "I'm not sure how to answer that."),
+            suggestions=result.get("suggestions", []),
+            data=result.get("data"),
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")

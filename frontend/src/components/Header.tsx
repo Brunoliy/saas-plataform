@@ -36,6 +36,14 @@ const Header = () => {
                 >
                   Professionals
                 </Link>
+                {user?.account_type === 'professional' && (
+                  <Link
+                    to="/recommended-projects"
+                    className="text-purple-600 hover:text-purple-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1"
+                  >
+                    ✨ AI Recommendations
+                  </Link>
+                )}
                 <Link
                   to="/companies"
                   className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
