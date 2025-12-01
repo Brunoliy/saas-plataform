@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import logo from '@/assets/logo.png'
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore()
@@ -9,9 +10,9 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex flex-col">
-              <span className="text-xl font-bold text-primary-600">MindHire</span>
-              <span className="text-xs text-gray-500">Conectando talentos com inteligência</span>
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="MindHire" className="h-12 w-auto" />
+              <span className="text-xs text-gray-500 hidden sm:block">Conectando talentos com inteligência</span>
             </Link>
           </div>
           
