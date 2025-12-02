@@ -1,17 +1,20 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Menu } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
-import logo from '@/assets/logo.png'
+import MobileMenu from './MobileMenu'
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="MindHire" className="h-12 w-auto" />
+            <Link to="/" className="flex flex-col">
+              <span className="text-xl font-bold text-primary-600">MindHire</span>
               <span className="text-xs text-gray-500 hidden sm:block">Conectando talentos com inteligência</span>
             </Link>
           </div>
@@ -64,46 +67,61 @@ const Header = () => {
           </nav>
           
           <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/profile"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={logout}
-                  className="btn btn-outline btn-sm"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="btn btn-primary btn-sm"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
+            {/* Desktop actions */}
+            <div className="hidden md:flex items-center space-x-4">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="btn btn-outline btn-sm"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="btn btn-primary btn-sm"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-primary-600"
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <MobileMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </header>
   )
 }
