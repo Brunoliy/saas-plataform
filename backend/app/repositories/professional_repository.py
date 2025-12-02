@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from sqlalchemy import and_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.professional import (
     ProfessionalLink,
@@ -47,6 +47,7 @@ class ProfessionalRepository:
         """Get professional profile by ID (only non-deleted profiles)."""
         return (
             self.db.query(ProfessionalProfile)
+            .options(joinedload(ProfessionalProfile.skills).joinedload(ProfessionalSkill.skill))
             .filter(
                 and_(
                     ProfessionalProfile.id == profile_id,
@@ -151,14 +152,14 @@ class ProfessionalRepository:
         self.db.refresh(db_skill)
         return db_skill
 
-    def remove_skill(self, professional_id: UUID, skill_id: UUID) -> bool:
-        """Remove a skill from professional profile."""
+    def remove_skill(self, professional_id: UUID, professional_skill_id: UUID) -> bool:
+        """Remove a skill from professional profile by ProfessionalSkill ID."""
         db_skill = (
             self.db.query(ProfessionalSkill)
             .filter(
                 and_(
+                    ProfessionalSkill.id == professional_skill_id,
                     ProfessionalSkill.professional_id == professional_id,
-                    ProfessionalSkill.skill_id == skill_id,
                     ProfessionalSkill.deleted_at.is_(None),
                 )
             )
