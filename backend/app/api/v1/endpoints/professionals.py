@@ -165,6 +165,28 @@ async def delete_professional_profile(
         )
 
 
+@router.get("/{professional_id}/skills", response_model=list[ProfessionalSkillResponse])
+async def get_professional_skills(
+    professional_id: str,
+    professional_service: ProfessionalService = Depends(get_professional_service),
+) -> list[ProfessionalSkillResponse]:
+    """Get all skills for a professional profile (public endpoint)."""
+    try:
+        profile_uuid = UUID(professional_id)
+        profile = await professional_service.get_profile_by_id(profile_uuid)
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Professional profile not found",
+            )
+        return profile.skills or []
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid professional ID format",
+        )
+
+
 @router.post(
     "/{professional_id}/skills",
     response_model=ProfessionalSkillResponse,

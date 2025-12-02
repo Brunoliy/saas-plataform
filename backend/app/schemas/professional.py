@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
+from app.schemas.skill import SkillResponse
+
 
 class ProfessionalSkillBase(BaseModel):
     """Base professional skill schema."""
@@ -35,6 +37,7 @@ class ProfessionalSkillResponse(ProfessionalSkillBase):
 
     id: UUID
     professional_id: UUID
+    skill: SkillResponse | None = None
     created_at: datetime
     updated_at: datetime
 
