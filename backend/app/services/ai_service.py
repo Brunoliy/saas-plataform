@@ -199,11 +199,9 @@ class AIService:
 
         # Component 1: Description semantic match (40% weight)
         description_score = 0.0
-        # Use bio field if description is empty (bio is the "About" section in profile)
-        professional_text = professional.bio or professional.description
-        if project.description and professional_text:
+        if project.description and professional.description:
             description_score = await self._calculate_semantic_description_match(
-                project.description, professional_text
+                project.description, professional.description
             )
             if description_score > 70:
                 positive_factors["description_match"] = (
@@ -217,15 +215,6 @@ class AIService:
                 negative_factors["description_mismatch"] = (
                     f"Low description match ({description_score:.1f}%)"
                 )
-        else:
-            # Log when description matching is not possible
-            if not professional_text:
-                logger.warning(
-                    f"Professional {professional.id} has no bio or description for semantic matching"
-                )
-                negative_factors["no_description"] = "Profile has no bio/description"
-            if not project.description:
-                logger.warning(f"Project {project.id} has no description for semantic matching")
 
         # Component 2: Skills semantic match (30% weight)
         skills_score, matched_skills = await self._calculate_skills_semantic_match(
