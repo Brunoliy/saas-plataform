@@ -1,11 +1,12 @@
-"""Embedding service for semantic text analysis using Hugging Face."""
+"""Embedding service for semantic text analysis using local sentence-transformers."""
 
 import asyncio
 import hashlib
 import logging
+from typing import List, Optional
 
-import httpx
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
 
@@ -13,24 +14,26 @@ logger = logging.getLogger(__name__)
 
 
 class EmbeddingService:
-    """Service for generating text embeddings using Hugging Face models."""
+    """Service for generating text embeddings using local sentence-transformers models."""
 
     def __init__(self):
-        """Initialize embedding service."""
-        self.api_key = settings.huggingface_api_key
-        self.model = "sentence-transformers/all-MiniLM-L6-v2"
-        self.api_url = f"https://api-inference.huggingface.co/models/{self.model}"
+        """Initialize embedding service with local model."""
+        self.model_name = "sentence-transformers/all-MiniLM-L6-v2"
+        self.model: Optional[SentenceTransformer] = None
         self.max_retries = 3
-        self.timeout = 30.0
 
-        if not self.api_key:
-            logger.warning(
-                "Hugging Face API key not configured. Embeddings will not be available."
-            )
+        # Initialize the model
+        try:
+            logger.info(f"Loading local sentence-transformers model: {self.model_name}")
+            self.model = SentenceTransformer(self.model_name)
+            logger.info(f"Model loaded successfully. Embedding dimension: {self.model.get_sentence_embedding_dimension()}")
+        except Exception as e:
+            logger.error(f"Failed to load sentence-transformers model: {str(e)}")
+            self.model = None
 
     async def embed_text(self, text: str) -> list[float] | None:
         """
-        Generate embedding vector for text using Hugging Face API.
+        Generate embedding vector for text using local sentence-transformers model.
 
         Args:
             text: Text to embed
@@ -38,8 +41,8 @@ class EmbeddingService:
         Returns:
             List of floats representing the embedding vector, or None if failed
         """
-        if not self.api_key:
-            logger.error("Cannot generate embeddings without API key")
+        if not self.model:
+            logger.error("Cannot generate embeddings - model not loaded")
             return None
 
         if not text or not text.strip():
@@ -49,59 +52,28 @@ class EmbeddingService:
         # Clean and truncate text (model has token limit)
         text = text.strip()[:1000]
 
-        headers = {"Authorization": f"Bearer {self.api_key}"}
-        payload = {"inputs": text}
+        try:
+            # Generate embedding using local model
+            # Run in executor to avoid blocking the event loop
+            loop = asyncio.get_event_loop()
+            embedding = await loop.run_in_executor(
+                None,
+                self.model.encode,
+                text
+            )
 
-        for attempt in range(self.max_retries):
-            try:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(
-                        self.api_url, headers=headers, json=payload
-                    )
-
-                    if response.status_code == 200:
-                        embedding = response.json()
-
-                        # Handle different response formats
-                        if isinstance(embedding, list) and len(embedding) > 0:
-                            if isinstance(embedding[0], list):
-                                # Format: [[embedding]]
-                                return embedding[0]
-                            elif isinstance(embedding[0], int | float):
-                                # Format: [embedding]
-                                return embedding
-
-                        logger.error(f"Unexpected embedding format: {type(embedding)}")
-                        return None
-
-                    elif response.status_code == 503:
-                        # Model is loading, wait and retry
-                        wait_time = 2**attempt
-                        logger.info(
-                            f"Model loading, retrying in {wait_time}s (attempt {attempt + 1}/{self.max_retries})"
-                        )
-                        await asyncio.sleep(wait_time)
-                        continue
-
-                    else:
-                        logger.error(
-                            f"Hugging Face API error: {response.status_code} - {response.text}"
-                        )
-                        return None
-
-            except httpx.TimeoutException:
-                logger.warning(f"Timeout on attempt {attempt + 1}/{self.max_retries}")
-                if attempt < self.max_retries - 1:
-                    await asyncio.sleep(2**attempt)
-                    continue
+            # Convert numpy array to list
+            if isinstance(embedding, np.ndarray):
+                return embedding.tolist()
+            elif isinstance(embedding, list):
+                return embedding
+            else:
+                logger.error(f"Unexpected embedding format: {type(embedding)}")
                 return None
 
-            except Exception as e:
-                logger.error(f"Error generating embedding: {str(e)}")
-                return None
-
-        logger.error("Max retries exceeded for embedding generation")
-        return None
+        except Exception as e:
+            logger.error(f"Error generating embedding: {str(e)}")
+            return None
 
     async def embed_texts(self, texts: list[str]) -> list[list[float] | None]:
         """
@@ -113,8 +85,39 @@ class EmbeddingService:
         Returns:
             List of embedding vectors (None for failed embeddings)
         """
-        tasks = [self.embed_text(text) for text in texts]
-        return await asyncio.gather(*tasks)
+        if not self.model:
+            logger.error("Cannot generate embeddings - model not loaded")
+            return [None] * len(texts)
+
+        try:
+            # Clean and truncate all texts
+            cleaned_texts = [text.strip()[:1000] for text in texts if text and text.strip()]
+
+            if not cleaned_texts:
+                logger.warning("No valid texts provided for embedding")
+                return [None] * len(texts)
+
+            # Generate embeddings using local model (batch processing)
+            # Run in executor to avoid blocking the event loop
+            loop = asyncio.get_event_loop()
+            embeddings = await loop.run_in_executor(
+                None,
+                self.model.encode,
+                cleaned_texts
+            )
+
+            # Convert numpy arrays to lists
+            if isinstance(embeddings, np.ndarray):
+                return [emb.tolist() for emb in embeddings]
+            elif isinstance(embeddings, list):
+                return embeddings
+            else:
+                logger.error(f"Unexpected embeddings format: {type(embeddings)}")
+                return [None] * len(texts)
+
+        except Exception as e:
+            logger.error(f"Error generating embeddings: {str(e)}")
+            return [None] * len(texts)
 
     def cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float | None:
         """
@@ -190,3 +193,11 @@ class EmbeddingService:
         similarity = self.cosine_similarity(embeddings[0], embeddings[1])
 
         return similarity if similarity is not None else 0.0
+
+    @property
+    def api_key(self) -> bool:
+        """
+        Compatibility property for code that checks if embedding service is available.
+        Returns True if model is loaded, False otherwise.
+        """
+        return self.model is not None
